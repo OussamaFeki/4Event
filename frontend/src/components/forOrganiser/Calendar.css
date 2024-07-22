@@ -1,0 +1,92 @@
+.calendar-container {
+  background-color: #343a40;
+  color: white;
+  padding: 20px;
+}
+
+.mb-4 {
+  margin-bottom: 1.5rem;
+}
+
+.text-light {
+  color: white !important;
+}
+
+.days-header {
+  margin-bottom: 1rem;
+  display: flex;
+  justify-content: space-between;
+  padding-left: 160px;
+}
+
+.day-name {
+  text-align: center;
+  border: 1px solid #ccc;
+  padding: 5px;
+  flex: 1;
+}
+
+.hours {
+  display: flex;
+}
+
+.time-column {
+  width: 60px;
+  text-align: right;
+  padding-right: 10px;
+  border-right: 1px solid #ccc;
+}
+
+.hour-label {
+  height: 50px;
+  line-height: 50px;
+  border-bottom: 1px solid #ccc;
+}
+
+.day-column {
+  flex: 1;
+  border-left: 1px solid #ccc;
+  position: relative;
+}
+
+.time-slot {
+  position: relative;
+  height: 50px;
+  border-bottom: 1px solid #ccc;
+}
+
+.event {
+  position: absolute;
+  width: 100%;
+  color: white;
+  padding: 5px;
+  box-sizing: border-box;
+  z-index: 1;
+}
+
+.availability {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: white;
+}
+
+@media (max-width: 768px) {
+  .days-header, .hours {
+    flex-direction: column;
+  }
+  .time-column {
+    width: 100%;
+    text-align: center;
+    padding-right: 0;
+    border-right: none;
+  }
+  .hour-label {
+    border-bottom: none;
+  }
+  .day-column {
+    border-left: none;
+    position: relative;
+  }
+}

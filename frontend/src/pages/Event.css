@@ -1,0 +1,27 @@
+.event-page {
+    background-color: #f8f9fa;
+    padding: 50px 0;
+  }
+  
+  .event-header {
+    background: url('../images/firstback.webp') no-repeat center center; 
+    background-size: cover;
+    padding: 100px 0;
+    text-align: center;
+    color: white;
+  }
+  
+  .event-header h1 {
+    font-size: 48px;
+    font-weight: bold;
+  }
+  
+  .event-page p {
+    font-size: 16px;
+    line-height: 1.5;
+  }
+  
+  .event-page .text-center {
+    margin-top: 20px;
+  }
+  

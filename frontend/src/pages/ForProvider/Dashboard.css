@@ -1,0 +1,46 @@
+/* Dashboard.css */
+.dashboard-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.cards-container {
+  display: flex;
+  justify-content: space-evenly;
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.section {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: center; /* Changed from flex-end to center */
+  gap: 20px; /* This adds space between the chart containers */
+}
+
+.chart-container {
+  width: fit-content;
+  display: flex;
+  justify-content: center; /* Changed from flex-end to center */
+  padding: 20px;
+  border: 2px solid #ccc;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  height: fit-content;
+}
+.barchart-container{
+  width: fit-content;
+  display: flex;
+  justify-content: center; /* Changed from flex-end to center */
+  padding: 40px;
+  border: 2px solid #ccc;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  height: fit-content;
+}
+
+.chart-wrapper {
+  max-width: 300px;
+}

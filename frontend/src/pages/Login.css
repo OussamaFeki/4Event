@@ -1,0 +1,71 @@
+.login-container {
+    width: 100%;
+    max-width: 400px;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+  }
+  
+  .form-label {
+    text-align: left;
+    display: block;
+  }
+  .login-header {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .login-footer {
+    text-align: center;
+    margin-top: 20px;
+  }
+  
+  .login-button {
+    background-color: #007bff;
+    color: white;
+    width: 100%;
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+  }
+  
+  .google-button {
+    background-color: white;
+    color: black;
+    width: 100%;
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .google-button img {
+    margin-right: 10px;
+  }
+  
+  .separator {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin-top: 20px;
+    margin-bottom: 20px;
+  }
+  
+  .separator::before,
+  .separator::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .separator::before {
+    margin-right: .25em;
+  }
+  
+  .separator::after {
+    margin-left: .25em;
+  }
+  

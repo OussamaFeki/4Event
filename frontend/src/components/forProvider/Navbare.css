@@ -1,0 +1,11 @@
+/* Center the search bar */
+.navbar .search-bar {
+    flex-grow: 1;
+    max-width: 600px;
+  }
+  
+  /* Right align the user info */
+  .navbar .user-info {
+    display: flex;
+    align-items: center;
+  }

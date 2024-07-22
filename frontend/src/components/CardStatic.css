@@ -1,0 +1,31 @@
+/* CardStatic.css */
+.card-static {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-radius: 8px;
+    color: white;
+    margin: 10px;
+    min-width: 150px;
+    font-family: Arial, sans-serif;
+  }
+  
+  .card-data {
+    text-align: left;
+  }
+  
+  .card-data h3 {
+    margin: 0;
+    font-size: 1.5rem;
+  }
+  
+  .card-data p {
+    margin: 0;
+    font-size: 0.875rem;
+  }
+  
+  .card-icon {
+    font-size: 2rem;
+  }
+  
