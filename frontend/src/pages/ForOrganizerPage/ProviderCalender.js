@@ -1,22 +1,29 @@
 import React from 'react';
-import Calendar from '../../components/forProvider/Calender';
 import { useLocation } from 'react-router-dom';
+import Calendar from '../../components/forProvider/Calender';
 
-const ProviderCalender = () => {
+const ProviderCalendar = () => {
   const location = useLocation();
-  const { events, availability, request, providerId } = location.state || {};
-  console.log(events)
+  console.log(location)
+  const { provider } = location.state || {};
+
+  console.log("Received provider data:",provider);
+
+  if (!provider) {
+    return <div>No provider data available.</div>;
+  }
+
   return (
     <div>
-      <h2>Provider Calendar</h2>
+      <h2>Provider Calendar for {provider.name}</h2>
       <Calendar 
-        events={events} 
-        availability={availability} 
-        request={request} 
         forOrganiser={true}
+        events={provider.events || []}
+        availability={provider.availabilities|| []}
+        request={provider.requests}
       />
     </div>
   );
 };
 
-export default ProviderCalender;
+export default ProviderCalendar;

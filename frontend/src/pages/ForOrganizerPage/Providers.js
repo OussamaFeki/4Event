@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Alert, Row, Col, Card, ListGroup, Button } from 'react-bootstrap';
 import { Calendar } from 'react-bootstrap-icons';
-import { getProviders } from '../../services/organiserServices';
 import { useNavigate } from 'react-router-dom';
+import { getProviders } from '../../services/organiserServices';
 
 const Providers = () => {
   const [providers, setProviders] = useState([]);
@@ -14,7 +14,6 @@ const Providers = () => {
       try {
         const data = await getProviders();
         setProviders(data);
-        console.log(data);
       } catch (err) {
         setError('Failed to fetch providers');
       }
@@ -23,28 +22,7 @@ const Providers = () => {
   }, []);
 
   const handleBookClick = (provider) => {
-    const formattedEvents = provider.events.map(event => ({
-      name: event.name,
-      date: event.date,
-      startTime: event.startTime,
-      endTime: event.endTime
-    }));
-
-    const formattedAvailability = provider.availabilities.map(availability => ({
-      dayOfWeek: availability.dayOfWeek.toUpperCase(),
-      startTime: availability.startTime,
-      endTime: availability.endTime
-    }));
-
-    navigate('/organizer/provider-calendar', { 
-      state: { 
-        events: formattedEvents, 
-        availability: formattedAvailability, 
-        request: provider.requests.length > 0 ? provider.requests[0] : null,
-        providerId: provider._id
-      } 
-    });
-    console.log('Navigating with provider data:', provider);
+    navigate('/organizer/provider-calendar', { state: { provider } });
   };
 
   if (error) {

@@ -8,6 +8,8 @@ import momentTimezonePlugin from '@fullcalendar/moment-timezone';
 import './Calendar.css';
 
 const Calendar = ({ events, availability, request, forOrganiser = false }) => {
+  console.log('forOrganiser:', forOrganiser); // Debug log
+
   const invalidTimeSlots = generateInvalidTimeSlots(availability);
   const requestEvent = forOrganiser && request ? [{
     title: 'Wait for response',
@@ -23,13 +25,18 @@ const Calendar = ({ events, availability, request, forOrganiser = false }) => {
     end: `${event.date.split('T')[0]}T${event.endTime}`
   }));
 
+  const availabilitySlots = forOrganiser ? generateAvailabilitySlots(availability) : [];
+
+  console.log('formattedEvents:', formattedEvents); // Debug log
+  console.log('availabilitySlots:', availabilitySlots); // Debug log
+
   return (
     <div style={{ height: '600px', width: '100%' }}>
       <FullCalendar
         plugins={[dayGridPlugin, timeGridPlugin, momentTimezonePlugin, interactionPlugin]}
         initialView="timeGridWeek"
         timeZone="local"
-        events={[...formattedEvents, ...invalidTimeSlots, ...requestEvent]}
+        events={[...formattedEvents, ...invalidTimeSlots, ...requestEvent, ...availabilitySlots]}
         headerToolbar={{
           left: 'prev,next today',
           center: 'title',
@@ -129,8 +136,26 @@ const generateInvalidTimeSlots = (availability) => {
   return invalidTimeSlots;
 };
 
+const generateAvailabilitySlots = (availability) => {
+  const availabilitySlots = [];
+
+  availability.forEach(slot => {
+    const daysOfWeek = [dayOfWeekEnumToNumber(slot.dayOfWeek)];
+    availabilitySlots.push({
+      title: '+',
+      daysOfWeek,
+      startTime: slot.startTime,
+      endTime: slot.endTime,
+      display: 'background',
+      backgroundColor: 'rgba(0, 255, 0, 0.5)' // Green color
+    });
+  });
+
+  return availabilitySlots;
+};
+
 function renderEventContent(eventInfo, forOrganiser) {
-  const isPlusSymbol = forOrganiser && !eventInfo.event.title;
+  const isPlusSymbol = forOrganiser && eventInfo.event.title === '+';
 
   return (
     <>

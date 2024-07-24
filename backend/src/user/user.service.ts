@@ -83,6 +83,8 @@ export class UserService {
         .populate('profile')
         .populate('services')
         .populate('availabilities')
+        .populate('events')
+        .populate('requests')
         .exec();
       
       return providers;
