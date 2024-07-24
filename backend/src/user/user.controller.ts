@@ -33,6 +33,10 @@ export class UserController {
     const id = userId || providerId;
     return this.userService.getdata(id,userType)
   }
-  
+  @Get('providers')
+  @UseGuards(AuthGuard)
+  async getAllProviders() {
+    return this.userService.getAllProviders();
+  }
 }
 

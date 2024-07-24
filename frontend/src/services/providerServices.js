@@ -92,3 +92,18 @@ export const getProviderStats =async (token)=>{
     throw error;
   }
 }
+// Function to get monthly budget sum
+export const getMonthlyBudgetSum = async (token) => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/events/provider/monthly-budget`, {
+      headers: {
+        Authorization: `Bearer ${token}`, // Assuming you're using JWT for auth
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching monthly budget sum:', error);
+    throw error;
+  }
+};

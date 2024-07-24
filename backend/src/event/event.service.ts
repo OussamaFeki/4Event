@@ -6,7 +6,7 @@ import { Provider } from '../provider/provider.schema';
 import { User } from '../user/user.schema';
 import { Availability } from 'src/availability/availability.schema';
 import { DayOfWeek } from 'src/shared/enums/day-of-week.enum';
-
+import { startOfWeek, endOfWeek,addMinutes, addDays, differenceInMinutes } from 'date-fns';
 @Injectable()
 export class EventService {
   constructor(
@@ -150,12 +150,17 @@ export class EventService {
     if (!user) {
       throw new NotFoundException('User not found');
     }
-
+  
+    const { startTime, endTime } = createEventDto;
+    if (startTime >= endTime) {
+      throw new BadRequestException('Start time must be less than end time');
+    }
+  
     const newEvent = new this.eventModel({
       ...createEventDto,
       organizer: userId, // Assigning organizer as userId of the user
     });
-
+  
     return newEvent.save();
   }
    // New method to get all availabilities and events of the connected provider
@@ -218,46 +223,76 @@ export class EventService {
       totalAmount: monthlyBudget[month]
     }));
   }
+ 
   async getEventAvailabilityPercentage(providerId: string): Promise<number> {
     const provider = await this.providerModel.findById(providerId).populate('availabilities events').exec();
-
+  
     if (!provider) {
       throw new NotFoundException('Provider not found');
     }
-
+  
     const { availabilities, events } = provider;
-
+  
     if (events.length === 0) {
       return 0; // If no events, return 0%
     }
-
+  
+    // Get the start and end of the current week
+    const currentDate = new Date();
+    const startOfCurrentWeek = startOfWeek(currentDate);
+    const endOfCurrentWeek = endOfWeek(currentDate);
+  
+    // Filter events within the current week
+    const eventsInCurrentWeek = events.filter(event => {
+      const eventDate = new Date(event.date);
+      return eventDate >= startOfCurrentWeek && eventDate <= endOfCurrentWeek;
+    });
+  
+    if (eventsInCurrentWeek.length === 0) {
+      return 0; // If no events in the current week, return 0%
+    }
+  
+    // Calculate total event duration in minutes
+    let totalEventDuration = 0;
+    eventsInCurrentWeek.forEach(event => {
+      const startTime = new Date(`${event.date.toISOString().split('T')[0]}T${event.startTime}`);
+      const endTime = new Date(`${event.date.toISOString().split('T')[0]}T${event.endTime}`);
+      totalEventDuration += differenceInMinutes(endTime, startTime);
+    });
+  
+    // Calculate total available duration in minutes for the current week
     const dayOfWeekMap = [
-      DayOfWeek.SUNDAY, 
-      DayOfWeek.MONDAY, 
-      DayOfWeek.TUESDAY, 
-      DayOfWeek.WEDNESDAY, 
-      DayOfWeek.THURSDAY, 
-      DayOfWeek.FRIDAY, 
+      DayOfWeek.SUNDAY,
+      DayOfWeek.MONDAY,
+      DayOfWeek.TUESDAY,
+      DayOfWeek.WEDNESDAY,
+      DayOfWeek.THURSDAY,
+      DayOfWeek.FRIDAY,
       DayOfWeek.SATURDAY
     ];
-
-    let countWithinAvailability = 0;
-
-    events.forEach(event => {
-      const eventDayOfWeek = dayOfWeekMap[event.date.getDay()];
-      const isWithinAvailability = availabilities.some(availability =>
-        availability.dayOfWeek === eventDayOfWeek &&
-        availability.startTime <= event.startTime &&
-        availability.endTime >= event.endTime
-      );
-
-      if (isWithinAvailability) {
-        countWithinAvailability++;
-      }
-    });
-
-    return (countWithinAvailability / events.length) * 100;
+  
+    let totalAvailableDuration = 0;
+    for (let day = 0; day < 7; day++) {
+      const currentDay = addDays(startOfCurrentWeek, day);
+      const dayOfWeekEnum = dayOfWeekMap[currentDay.getDay()];
+  
+      const dayAvailability = availabilities.filter(slot => slot.dayOfWeek === dayOfWeekEnum);
+  
+      dayAvailability.forEach(slot => {
+        const startTime = new Date(`${currentDay.toISOString().split('T')[0]}T${slot.startTime}`);
+        const endTime = new Date(`${currentDay.toISOString().split('T')[0]}T${slot.endTime}`);
+        totalAvailableDuration += differenceInMinutes(endTime, startTime);
+      });
+    }
+  
+    if (totalAvailableDuration === 0) {
+      return 0; // If no available time, return 0%
+    }
+  
+    return (totalEventDuration / totalAvailableDuration) * 100;
   }
+ 
+
   // New method to get all requests for a provider
   async getProviderRequests(providerId: string): Promise<Event[]> {
     const provider = await this.providerModel.findById(providerId).populate('requests').exec();

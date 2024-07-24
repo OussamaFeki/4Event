@@ -2,6 +2,7 @@ import { Controller, Put, Param, UseGuards, Req, NotFoundException, ForbiddenExc
 import { EventService } from './event.service';
 import { AuthGuard } from '../shared/auth/auth.gard';
 import { Request } from 'express';
+import { Provider } from 'src/provider/provider.schema';
 
 @Controller('events')
 export class EventController {
@@ -127,5 +128,10 @@ export class EventController {
     const userId = request['user'].userId;
     await this.eventService.deleteEvent(userId, eventId);
     return { message: 'Event deleted successfully' };
+  }
+  @Get(':eventId/available-providers')
+  @UseGuards(AuthGuard)
+  async getAvailableProvidersForEvent(@Param('eventId') eventId: string): Promise<Provider[]> {
+    return this.eventService.getAvailableProvidersForEvent(eventId);
   }
 }

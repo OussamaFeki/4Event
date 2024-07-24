@@ -46,7 +46,7 @@ const Calendar = ({ events, availability, request, forOrganiser = false }) => {
         selectMirror={true}
         selectable={true}
         nowIndicator={true}
-        eventContent={renderEventContent}
+        eventContent={eventInfo => renderEventContent(eventInfo, forOrganiser)}
         allDaySlot={false}
       />
     </div>
@@ -129,11 +129,13 @@ const generateInvalidTimeSlots = (availability) => {
   return invalidTimeSlots;
 };
 
-function renderEventContent(eventInfo) {
+function renderEventContent(eventInfo, forOrganiser) {
+  const isPlusSymbol = forOrganiser && !eventInfo.event.title;
+
   return (
     <>
+      {isPlusSymbol ? <i>+</i> : <i>{eventInfo.event.title}</i>}<br />
       <b>{eventInfo.timeText}</b>
-      <i>{eventInfo.event.title}</i>
     </>
   );
 }

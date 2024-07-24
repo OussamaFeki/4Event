@@ -77,4 +77,17 @@ export class UserService {
     }
     return user
   }
+  async getAllProviders(): Promise<Provider[]> {
+    try {
+      const providers = await this.providerModel.find()
+        .populate('profile')
+        .populate('services')
+        .populate('availabilities')
+        .exec();
+      
+      return providers;
+    } catch (error) {
+      throw new BadRequestException('Error fetching providers');
+    }
+  }
 }

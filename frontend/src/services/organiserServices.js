@@ -67,7 +67,38 @@ export const deleteEvent=async(token,eventId)=>{
       }
     );
     return response.data;
-  }catch{
-
+  }catch(error){
+    console.error('Error creating event:', error);
+    throw error;
+  }
+};
+// New function to get available providers for an event
+export const getAvailableProvidersForEvent = async (token, eventId) => {
+  try {
+    const response = await axios.get(
+      `${API_BASE_URL}/events/${eventId}/available-providers`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error getting available providers:', error);
+    throw error;
+  }
+};
+export const getProviders=async()=>{
+  try {
+    const response = await axios.get(`${API_BASE_URL}/users/providers`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching providers:', error);
+    throw error;
   }
 }

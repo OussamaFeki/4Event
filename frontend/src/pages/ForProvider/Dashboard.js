@@ -1,16 +1,18 @@
 import React, { useEffect, useState } from 'react';
+import { Person, CalendarEvent, CurrencyDollar } from 'react-bootstrap-icons';
 import DoughnutChart from '../../components/forOrganiser/Chart';
 import CardStatic from '../../components/CardStatic'; // Import CardStatic component
 import './Dashboard.css'; // Import CSS for Dashboard styling
 import NumericChart from '../../components/Numericchart';
 import BarChart from '../../components/BarChart';
-import { getAvailabilitypercentage, getProviderStats } from '../../services/providerServices';
+import { getAvailabilitypercentage, getProviderStats, getMonthlyBudgetSum } from '../../services/providerServices';
 
 const Dashboard = () => {
   const [data, setData] = useState();
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [stats,setStats]=useState();
+  const [stats, setStats] = useState();
+  const [monthlyBudget, setMonthlyBudget] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -18,8 +20,10 @@ const Dashboard = () => {
         const token = localStorage.getItem('token');
         const percentage = await getAvailabilitypercentage(token);
         setData(percentage);
-        const datastate=await getProviderStats(token);
-        setStats(datastate)
+        const datastate = await getProviderStats(token);
+        setStats(datastate);
+        const budgetData = await getMonthlyBudgetSum(token);
+        setMonthlyBudget(budgetData.monthlyBudgetSum);
       } catch (err) {
         setError(err);
       } finally {
@@ -43,14 +47,33 @@ const Dashboard = () => {
   return (
     <div className="dashboard-container">
       <div className="cards-container">
-        <CardStatic color="green" data={stats.totalPrices} title="Budget" />
-        <CardStatic color="red" data={stats.totalEvents} title="Total Events" />
-        <CardStatic color="blue" data={stats.totalUsers} title="Clients" />
-        <CardStatic color="orange" data={currentDate} title="Date" />
+        <CardStatic 
+          color="green" 
+          data={`${stats.totalPrices}`} 
+          title="Budget" 
+          icon={<CurrencyDollar />} 
+        />
+        <CardStatic 
+          color="red" 
+          data={stats.totalEvents} 
+          title="Total Events" 
+          icon={<CalendarEvent />} 
+        />
+        <CardStatic 
+          color="blue" 
+          data={stats.totalUsers} 
+          title="Clients" 
+          icon={<Person />} 
+        />
+        <CardStatic 
+          color="orange" 
+          data={currentDate} 
+          title="Date" 
+        />
       </div>
       <div className="section">
         <div className="barchart-container">
-          <BarChart />
+          <BarChart data={monthlyBudget} />
         </div>
         <div className="chart-container">
           <NumericChart data={data} />

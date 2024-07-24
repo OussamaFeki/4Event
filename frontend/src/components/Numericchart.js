@@ -81,7 +81,7 @@ const NumericChart = ({ data }) => {
 
   return (
     <div style={{ maxWidth: '300px' }}>
-      <p>Pourcentage of your availability this week</p>
+      <p>Pourcentage of the event in your availability this week</p>
       <canvas ref={chartContainer} width="100" height="100" />
     </div>
   );
