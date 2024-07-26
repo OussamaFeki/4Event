@@ -7,28 +7,14 @@ import interactionPlugin from '@fullcalendar/interaction';
 import momentTimezonePlugin from '@fullcalendar/moment-timezone';
 import './Calendar.css';
 
-const Calendar = ({ events, availability, request, forOrganiser = false }) => {
-  console.log('forOrganiser:', forOrganiser); // Debug log
-
+const Calendar = ({ events, availability, requests, userId }) => {
   const invalidTimeSlots = generateInvalidTimeSlots(availability);
-  const requestEvent = forOrganiser && request ? [{
-    title: 'Wait for response',
-    start: request.start,
-    end: request.end,
-    display: 'background',
-    backgroundColor: 'rgba(255, 255, 0)' // Yellow color
-  }] : [];
-
+  
   const formattedEvents = events.map(event => ({
     title: event.name,
     start: `${event.date.split('T')[0]}T${event.startTime}`,
     end: `${event.date.split('T')[0]}T${event.endTime}`
   }));
-
-  const availabilitySlots = forOrganiser ? generateAvailabilitySlots(availability) : [];
-
-  console.log('formattedEvents:', formattedEvents); // Debug log
-  console.log('availabilitySlots:', availabilitySlots); // Debug log
 
   return (
     <div style={{ height: '600px', width: '100%' }}>
@@ -36,7 +22,7 @@ const Calendar = ({ events, availability, request, forOrganiser = false }) => {
         plugins={[dayGridPlugin, timeGridPlugin, momentTimezonePlugin, interactionPlugin]}
         initialView="timeGridWeek"
         timeZone="local"
-        events={[...formattedEvents, ...invalidTimeSlots, ...requestEvent, ...availabilitySlots]}
+        events={[...formattedEvents, ...invalidTimeSlots]}
         headerToolbar={{
           left: 'prev,next today',
           center: 'title',
@@ -53,7 +39,7 @@ const Calendar = ({ events, availability, request, forOrganiser = false }) => {
         selectMirror={true}
         selectable={true}
         nowIndicator={true}
-        eventContent={eventInfo => renderEventContent(eventInfo, forOrganiser)}
+        eventContent={eventInfo => renderEventContent(eventInfo)}
         allDaySlot={false}
       />
     </div>
@@ -79,7 +65,7 @@ const generateInvalidTimeSlots = (availability) => {
 
   daysOfWeek.forEach((day) => {
     const dayAvailability = availability.filter(slot => dayOfWeekEnumToNumber(slot.dayOfWeek) === day);
-
+    console.log(dayAvailability)
     if (dayAvailability.length === 0) {
       // If no availability for this day, mark the whole day as invalid
       invalidTimeSlots.push({
@@ -88,7 +74,8 @@ const generateInvalidTimeSlots = (availability) => {
         startTime: '00:00',
         endTime: '24:00',
         display: 'background',
-        backgroundColor: 'rgba(255, 0, 0)'
+        backgroundColor: 'rgba(255, 0, 0)',
+        textColor: 'black' // Black text color for Invalid
       });
     } else {
       // Sort availability slots for this day
@@ -102,7 +89,8 @@ const generateInvalidTimeSlots = (availability) => {
           startTime: '00:00',
           endTime: dayAvailability[0].startTime,
           display: 'background',
-          backgroundColor: 'rgba(255, 0, 0)'
+          backgroundColor: 'rgba(255, 0, 0)',
+          textColor: 'black' // Black text color for Invalid
         });
       }
 
@@ -114,7 +102,8 @@ const generateInvalidTimeSlots = (availability) => {
           startTime: dayAvailability[i].endTime,
           endTime: dayAvailability[i + 1].startTime,
           display: 'background',
-          backgroundColor: 'rgba(255, 0, 0)'
+          backgroundColor: 'rgba(255, 0, 0)',
+          textColor: 'black' // Black text color for Invalid
         });
       }
 
@@ -127,7 +116,8 @@ const generateInvalidTimeSlots = (availability) => {
           startTime: lastSlot.endTime,
           endTime: '24:00',
           display: 'background',
-          backgroundColor: 'rgba(255, 0, 0)'
+          backgroundColor: 'rgba(255, 0, 0)',
+          textColor: 'black' // Black text color for Invalid
         });
       }
     }
@@ -136,30 +126,13 @@ const generateInvalidTimeSlots = (availability) => {
   return invalidTimeSlots;
 };
 
-const generateAvailabilitySlots = (availability) => {
-  const availabilitySlots = [];
-
-  availability.forEach(slot => {
-    const daysOfWeek = [dayOfWeekEnumToNumber(slot.dayOfWeek)];
-    availabilitySlots.push({
-      title: '+',
-      daysOfWeek,
-      startTime: slot.startTime,
-      endTime: slot.endTime,
-      display: 'background',
-      backgroundColor: 'rgba(0, 255, 0, 0.5)' // Green color
-    });
-  });
-
-  return availabilitySlots;
-};
-
-function renderEventContent(eventInfo, forOrganiser) {
-  const isPlusSymbol = forOrganiser && eventInfo.event.title === '+';
+function renderEventContent(eventInfo) {
+  const isInvalid = eventInfo.event.title === 'Invalid';
 
   return (
     <>
-      {isPlusSymbol ? <i>+</i> : <i>{eventInfo.event.title}</i>}<br />
+      <i style={{ color: isInvalid ? 'black' : 'inherit' }}>{eventInfo.event.title}</i>
+      <br />
       <b>{eventInfo.timeText}</b>
     </>
   );
@@ -181,11 +154,14 @@ Calendar.propTypes = {
       endTime: PropTypes.string.isRequired,
     })
   ).isRequired,
-  request: PropTypes.shape({
-    start: PropTypes.string.isRequired,
-    end: PropTypes.string.isRequired,
-  }),
-  forOrganiser: PropTypes.bool
+  requests: PropTypes.arrayOf(
+    PropTypes.shape({
+      start: PropTypes.string.isRequired,
+      end: PropTypes.string.isRequired,
+      organizer: PropTypes.string.isRequired, // Ensure the requests have an organizer property
+    })
+  ),
+  userId: PropTypes.string.isRequired // Add userId prop type
 };
 
 export default Calendar;

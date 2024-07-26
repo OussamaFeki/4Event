@@ -1,3 +1,8 @@
-.fc-non-business {
-  background-color: rgba(255, 0, 0); /* Light red color for invalid time slots */
+
+.fc-event-background {
+  background-color: rgba(0, 255, 0, 0.5); /* Green background for availability slots */
+}
+
+.fc-event {
+  color: black;
 }

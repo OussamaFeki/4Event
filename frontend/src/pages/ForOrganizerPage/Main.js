@@ -19,6 +19,7 @@ const MainUser = () => {
       try {
         const data = await getdata();
         setUserData(data);
+        console.log(data._id)
       } catch (err) {
         setError(err.message);
       } finally {
@@ -46,7 +47,7 @@ const MainUser = () => {
             <Route path='/' element={<Dashboard/>}/>
             <Route path='/event' element={<Events />}/>
             <Route path='/providers' element={<Providers/>}/>
-            <Route path='/provider-calendar' element={<ProviderCalender/>}/>  {/* New route for ProviderCalender */}
+            <Route path='/provider-calendar' element={<ProviderCalender userId={userData._id}/>}/>  {/* New route for ProviderCalender */}
           </Routes>
         </Container>
       </Sidebar>

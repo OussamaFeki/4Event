@@ -1,14 +1,15 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
-import Calendar from '../../components/forProvider/Calender';
+import Calendar from '../../components/forOrganiser/Calendar';
 
-const ProviderCalendar = () => {
+
+const ProviderCalendar = ({userId}) => {
   const location = useLocation();
   console.log(location)
   const { provider } = location.state || {};
-
-  console.log("Received provider data:",provider);
-
+  const availability=provider.availabilities;
+  console.log("Received provider :",provider);
+  console.log('user Id =',userId)
   if (!provider) {
     return <div>No provider data available.</div>;
   }
@@ -19,8 +20,9 @@ const ProviderCalendar = () => {
       <Calendar 
         forOrganiser={true}
         events={provider.events || []}
-        availability={provider.availabilities|| []}
-        request={provider.requests}
+        availability={availability || []}
+        requests={provider.requests || []}
+        userId={userId}
       />
     </div>
   );
