@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
@@ -8,33 +8,84 @@ import momentTimezonePlugin from '@fullcalendar/moment-timezone';
 import { Modal, Button, Container, Row, Col } from 'react-bootstrap';
 import { PlusCircle } from 'react-bootstrap-icons';
 import './Calendar.css';
+import { getEventsBetween } from '../../services/organiserServices';
+import EventList from './EventList';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchProviderData } from '../../redux/actions/providerAction';
 
-const Calendar = ({ events, availability, requests, userId }) => {
+const Calendar = ({  userId,providerId }) => {
+  //get the data from redux
+  const dispatch = useDispatch();
+  const { provider, loading, error } = useSelector((state) => state.provider);
   const [showModal, setShowModal] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState(null);
+  const [slotEvents, setSlotEvents] = useState([]);
+  let events = provider?.events || [];
+  let availability = provider?.availabilities || [];
+  let requests = provider?.requests || [];
+  useEffect(() => {
+    if (providerId) {
+      dispatch(fetchProviderData(providerId));
+      events=provider?.events;
+      availability = provider?.availabilities
+      requests = provider?.requests 
+    }
+  }, []);
+
+  
+  console.log(provider)
+  console.log(events);
+  console.log(availability)
+  //
 
   const invalidTimeSlots = generateInvalidTimeSlots(availability);
-  const availableSlots = generateAvailableSlots(availability, events);
-  console.log(availableSlots);
+  const availableSlots = generateAvailableSlots(availability, events, requests, userId);
 
   const formattedEvents = events.map(event => ({
     title: event.name,
     start: `${event.date.split('T')[0]}T${event.startTime}`,
     end: `${event.date.split('T')[0]}T${event.endTime}`
   }));
+  const formattedRequests=requests.map(request=>({
+    title:'wait for respense',
+    start: `${request.date.split('T')[0]}T${request.startTime}`,
+    end: `${request.date.split('T')[0]}T${request.endTime}`,
+    backgroundColor: 'yellow',
+    textColor: 'black'
+  })
+  )
 
-  const handleEventClick = (clickInfo) => {
+  const handleEventClick = async (clickInfo) => {
     if (clickInfo.event.title === '+') {
+      const startDateTime = new Date(clickInfo.event.start);
+      const endDateTime = new Date(clickInfo.event.end);
+  
+      // Extract the date part in the desired format
+      const date = startDateTime.toISOString().split('T')[0] + "T00:00:00.000+00:00";
+      const start = startDateTime.toTimeString().slice(0, 5);
+      const end = endDateTime.toTimeString().slice(0, 5);
+  
       setSelectedSlot({
         start: clickInfo.event.start,
         end: clickInfo.event.end
       });
+  
+      try {
+        const token = localStorage.getItem('token');
+        console.log(date, start, end);
+        const events = await getEventsBetween(token, date, start, end);
+        setSlotEvents(events);
+      } catch (error) {
+        console.error('Error fetching events between:', error);
+      }
+  
       setShowModal(true);
     }
   };
+  
 
   return (
-<Container fluid>
+    <Container fluid>
       <Row>
         <Col>
           <div style={{ height: '600px', width: '100%' }}>
@@ -42,7 +93,7 @@ const Calendar = ({ events, availability, requests, userId }) => {
               plugins={[dayGridPlugin, timeGridPlugin, momentTimezonePlugin, interactionPlugin]}
               initialView="timeGridWeek"
               timeZone="local"
-              events={[...formattedEvents, ...invalidTimeSlots, ...availableSlots]}
+              events={[...formattedEvents, ...invalidTimeSlots, ...availableSlots,...formattedRequests]}
               headerToolbar={{
                 left: 'prev,next today',
                 center: 'title',
@@ -70,7 +121,9 @@ const Calendar = ({ events, availability, requests, userId }) => {
         show={showModal}
         onHide={() => setShowModal(false)}
         selectedSlot={selectedSlot}
+        slotEvents={slotEvents}
         userId={userId}
+        providerId={providerId}
       />
     </Container>
   );
@@ -156,9 +209,10 @@ const generateInvalidTimeSlots = (availability) => {
   return invalidTimeSlots;
 };
 
-const generateAvailableSlots = (availability, events = []) => {
+const generateAvailableSlots = (availability, events = [], requests = [], userId) => {
   const availableSlots = [];
   const eventsByDate = {};
+  const requestsByDate = {};
 
   // Organize events by date for easy lookup
   events.forEach(event => {
@@ -169,12 +223,23 @@ const generateAvailableSlots = (availability, events = []) => {
     eventsByDate[date].push(event);
   });
 
+  // Organize requests by date for easy lookup
+  requests.forEach(request => {
+    if (request.organizer === userId) {
+      const date = request.date.split('T')[0];
+      if (!requestsByDate[date]) {
+        requestsByDate[date] = [];
+      }
+      requestsByDate[date].push(request);
+    }
+  });
+
   // Iterate over each availability slot
   availability.forEach(slot => {
     const dayOfWeek = dayOfWeekEnumToNumber(slot.dayOfWeek.toUpperCase());
 
     // Iterate over a range of dates to cover multiple weeks
-    for (let dayOffset = 0; dayOffset < 1400; dayOffset++) {
+    for (let dayOffset = 0; dayOffset < 140; dayOffset++) {
       const currentDate = new Date();
       currentDate.setDate(currentDate.getDate() + dayOffset);
 
@@ -182,13 +247,14 @@ const generateAvailableSlots = (availability, events = []) => {
       if (currentDate.getUTCDay() === dayOfWeek) {
         const formattedDate = currentDate.toISOString().split('T')[0];
         const dayEvents = eventsByDate[formattedDate] || [];
+        const dayRequests = requestsByDate[formattedDate] || [];
 
         // Convert availability slot to date objects for comparison
         let slotStart = new Date(`${formattedDate}T${slot.startTime}:00`);
         const slotEnd = new Date(`${formattedDate}T${slot.endTime}:00`);
 
-        // If no events on this date, add the entire availability slot
-        if (dayEvents.length === 0) {
+        // If no events and no requests on this date, add the entire availability slot
+        if (dayEvents.length === 0 && dayRequests.length === 0) {
           availableSlots.push({
             title: '+',
             start: `${formattedDate}T${slot.startTime}`,
@@ -198,27 +264,34 @@ const generateAvailableSlots = (availability, events = []) => {
             extendedProps: { clickable: true }
           });
         } else {
-          // Process each event to adjust availability slots
-          dayEvents.forEach(event => {
-            const eventStart = new Date(`${formattedDate}T${event.startTime}:00`);
-            const eventEnd = new Date(`${formattedDate}T${event.endTime}:00`);
+          // Combine events and requests, and sort them by start time
+          const combinedSlots = [...dayEvents, ...dayRequests].sort((a, b) => {
+            const aStart = new Date(`${formattedDate}T${a.startTime || a.start}:00`);
+            const bStart = new Date(`${formattedDate}T${b.startTime || b.start}:00`);
+            return aStart - bStart;
+          });
 
-            // If event starts before the slot and ends after the start of the slot, adjust the slot start
-            if (eventStart <= slotStart && eventEnd > slotStart) {
-              slotStart = eventEnd;
+          // Process each event/request to adjust availability slots
+          combinedSlots.forEach(slotItem => {
+            const slotItemStart = new Date(`${formattedDate}T${slotItem.startTime || slotItem.start}:00`);
+            const slotItemEnd = new Date(`${formattedDate}T${slotItem.endTime || slotItem.end}:00`);
+
+            // If event/request starts before the slot and ends after the start of the slot, adjust the slot start
+            if (slotItemStart <= slotStart && slotItemEnd > slotStart) {
+              slotStart = slotItemEnd;
             }
 
-            // If event starts after the slot start and before the slot end, create a new available slot and adjust the slot start
-            if (eventStart > slotStart && eventStart < slotEnd) {
+            // If event/request starts after the slot start and before the slot end, create a new available slot and adjust the slot start
+            if (slotItemStart > slotStart && slotItemStart < slotEnd) {
               availableSlots.push({
                 title: '+',
                 start: `${formattedDate}T${slotStart.toTimeString().slice(0, 5)}`,
-                end: `${formattedDate}T${eventStart.toTimeString().slice(0, 5)}`,
+                end: `${formattedDate}T${slotItemStart.toTimeString().slice(0, 5)}`,
                 display: 'background',
                 backgroundColor: 'rgba(0, 128, 0, 0.5)', // Darker green color
                 extendedProps: { clickable: true }
               });
-              slotStart = eventEnd;
+              slotStart = slotItemEnd;
             }
           });
 
@@ -241,10 +314,10 @@ const generateAvailableSlots = (availability, events = []) => {
   return availableSlots;
 };
 
-
 function renderEventContent(eventInfo) {
   const isInvalid = eventInfo.event.title === 'Invalid';
   const isAvailable = eventInfo.event.title === '+';
+  const isRequest = eventInfo.event.extendedProps?.type === 'request';
 
   return (
     <>
@@ -265,39 +338,38 @@ function renderEventContent(eventInfo) {
           <PlusCircle color="white" size={20} />
         </div>
       ) : (
-        <i style={{ color: isInvalid ? 'black' : 'inherit' }}>{eventInfo.event.title}</i>
+        <div 
+          style={{ 
+            backgroundColor: isRequest ? 'rgba(255, 255, 0, 0.5)' : 'inherit', 
+            height: '100%', 
+            width: '100%', 
+            textAlign: 'center', 
+            lineHeight: '2'
+          }}
+        >
+          <i style={{ color: isInvalid ? 'black' : 'inherit' }}>{eventInfo.event.title}</i>
+          <br />
+          <b>{eventInfo.timeText}</b>
+        </div>
       )}
-      <br />
-      <b>{eventInfo.timeText}</b>
     </>
   );
 }
 
-const BookingModal = ({ show, onHide, selectedSlot, userId }) => {
+const BookingModal = ({ show, onHide, selectedSlot, slotEvents, userId,providerId }) => {
   return (
     <Modal show={show} onHide={onHide} centered>
       <Modal.Header closeButton>
-        <Modal.Title>Book this slot</Modal.Title>
+        <Modal.Title>Events in Selected Slot</Modal.Title>
       </Modal.Header>
       <Modal.Body>
         {selectedSlot && (
-          <>
-            <p>Start: {selectedSlot.start.toLocaleString()}</p>
-            <p>End: {selectedSlot.end.toLocaleString()}</p>
-            <p>User ID: {userId}</p>
-          </>
+          <EventList slotEvents={slotEvents} providerId={providerId}/>
         )}
       </Modal.Body>
       <Modal.Footer>
         <Button variant="secondary" onClick={onHide}>
           Close
-        </Button>
-        <Button variant="primary" onClick={() => {
-          // Add your booking logic here
-          console.log('Booking slot:', selectedSlot);
-          onHide();
-        }}>
-          Book
         </Button>
       </Modal.Footer>
     </Modal>

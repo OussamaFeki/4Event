@@ -1,4 +1,4 @@
-import { Controller, Post, Body , Put , Param, Get, UseGuards, Req, UnauthorizedException } from '@nestjs/common';
+import { Controller, Post, Body , Put , Param, Get, UseGuards, Req, UnauthorizedException, NotFoundException } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from '../shared/dto/create-user.dto';
 import { AuthGuard } from 'src/shared/auth/auth.gard';
@@ -37,6 +37,15 @@ export class UserController {
   @UseGuards(AuthGuard)
   async getAllProviders() {
     return this.userService.getAllProviders();
+  }
+  @Get('provider/:id')
+  @UseGuards(AuthGuard)
+  async getProviderData(@Param('id') providerId: string) {
+    const provider = await this.userService.getProviderData(providerId);
+    if (!provider) {
+      throw new NotFoundException('Provider not found');
+    }
+    return provider;
   }
 }
 

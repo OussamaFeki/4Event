@@ -7,7 +7,9 @@ import * as bcrypt from 'bcrypt';
 import * as jwt from 'jsonwebtoken';
 import { ConfigService } from '@nestjs/config';
 import { Provider } from 'src/provider/provider.schema';
-
+import { v4 as uuidv4 } from 'uuid';
+import { join } from 'path';
+import { writeFileSync } from 'fs';
 @Injectable()
 export class UserService {
   constructor(
@@ -91,5 +93,36 @@ export class UserService {
     } catch (error) {
       throw new BadRequestException('Error fetching providers');
     }
+  }
+
+  async getProviderData(providerId: string): Promise<Provider> {
+    try {
+      const provider = await this.providerModel.findById(providerId)
+        .populate('events')
+        .populate('requests')
+        .populate('availabilities')
+        .exec();
+
+      if (!provider) {
+        throw new NotFoundException('Provider not found');
+      }
+
+      return provider;
+    } catch (error) {
+      throw new BadRequestException('Error fetching provider data');
+    }
+  }
+  async updateAvatar(userId: string, file: Express.Multer.File): Promise<User> {
+    const user = await this.userModel.findById(userId).exec();
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const filename = `${uuidv4()}-${file.originalname}`;
+    const filePath = join(__dirname, '..', '..', 'uploads', filename);
+    writeFileSync(filePath, file.buffer);
+
+    user.avatar = `/uploads/${filename}`;
+    return user.save();
   }
 }

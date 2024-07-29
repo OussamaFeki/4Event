@@ -1,12 +1,15 @@
 import React from 'react';
 import { Modal, Button } from 'react-bootstrap';
 import { sendRequest } from '../services/organiserServices';
+import { useDispatch, useSelector } from 'react-redux';
+import { sendProviderRequest } from '../redux/actions/providerAction';
 
 const ConfirmationModal = ({ show, handleClose, token, eventId, providerId }) => {
+  const dispatch = useDispatch();
+  const { provider, loading, error } = useSelector((state) => state.provider);
   const handleConfirm = async () => {
     try {
-      await sendRequest(token, eventId, providerId);
-      alert('Request sent successfully!');
+      await dispatch(sendProviderRequest({ eventId, providerId })).unwrap();
       handleClose();
     } catch (err) {
       alert('Error sending request: ' + err.message);

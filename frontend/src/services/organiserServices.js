@@ -102,3 +102,37 @@ export const getProviders=async()=>{
     throw error;
   }
 }
+// New function to get events between specified times
+export const getEventsBetween = async (token, date,startTime, endTime) => {
+  try {
+    const response = await axios.get(
+      `${API_BASE_URL}/events/between`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        params: { date: date, startTime, endTime },
+      }
+    );
+    return response.data.events;
+  } catch (error) {
+    console.error('Error fetching events between:', error);
+    throw error;
+  }
+};
+export const getProviderData = async (token, id) => {
+  try {
+    const response = await axios.get(
+      `${API_BASE_URL}/users/provider/${id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching provider data:', error);
+    throw error;
+  }
+};

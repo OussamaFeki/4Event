@@ -1,28 +1,19 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import Calendar from '../../components/forOrganiser/Calendar';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchProviderData } from '../../redux/actions/providerAction';
 
-
-const ProviderCalendar = ({userId}) => {
+const ProviderCalendar = ({ userId }) => {
   const location = useLocation();
-  console.log(location)
-  const { provider } = location.state || {};
-  const availability=provider.availabilities;
-  console.log("Received provider :",provider);
-  console.log('user Id =',userId)
-  if (!provider) {
-    return <div>No provider data available.</div>;
-  }
-
+  const { provider1 } = location.state || {};
   return (
     <div>
-      <h2>Provider Calendar for {provider.name}</h2>
+      <h2>Provider Calendar for {provider1.name}</h2>
       <Calendar 
         forOrganiser={true}
-        events={provider.events || []}
-        availability={availability || []}
-        requests={provider.requests || []}
         userId={userId}
+        providerId={provider1._id}
       />
     </div>
   );

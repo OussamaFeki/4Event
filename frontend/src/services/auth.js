@@ -89,4 +89,22 @@ export const getdata=async()=>{
   }catch (error){
     throw new Error(error.response.data.message || 'get data failed');
   }
+  
 }
+export const getProfile = async () => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('You are not logged in');
+    }
+
+    const response = await axios.get(`${API_URL}/profile`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response.data.message || 'Get profile failed');
+  }
+};

@@ -1,20 +1,47 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Accordion from 'react-bootstrap/Accordion';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import { getProfile, updateProfile } from '../../services/auth';
+
 
 const Setting = () => {
-  const [userName, setUserName] = useState('');
-  const [userEmail, setUserEmail] = useState('');
   const [userPassword, setUserPassword] = useState('');
   const [oldPassword, setOldPassword] = useState('');
   const [avatar, setAvatar] = useState(null);
+  const [address, setAddress] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [bio, setBio] = useState('');
+  const [activeKey, setActiveKey] = useState('0');
 
-  const handleProfileUpdate = (e) => {
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      if (activeKey === '1') { // Check if the Update Profile section is opened
+        try {
+          const profileData = await getProfile();
+          if (profileData.profile) {
+            setAddress(profileData.profile.address|| '');
+            setPhoneNumber(profileData.profile.phoneNumber || '');
+            setBio(profileData.profile.bio || '');
+          }
+        } catch (error) {
+          console.error('Failed to fetch profile data:', error.message);
+        }
+      }
+    };
+
+    fetchProfileData();
+  }, [activeKey]);
+
+  const handleProfileUpdate = async (e) => {
     e.preventDefault();
-    // Logic for updating profile
-    console.log('Profile Updated', { userName, userEmail });
+    try {
+      await updateProfile(address, phoneNumber, bio);
+      console.log('Profile Updated', { address, phoneNumber, bio });
+    } catch (error) {
+      console.error('Update profile failed:', error.message);
+    }
   };
 
   const handleChangePassword = (e) => {
@@ -30,7 +57,7 @@ const Setting = () => {
   };
 
   return (
-    <Accordion defaultActiveKey="0">
+    <Accordion activeKey={activeKey} onSelect={(key) => setActiveKey(key)}>
       <Accordion.Item eventKey="0">
         <Accordion.Header>Change Password</Accordion.Header>
         <Accordion.Body>
@@ -63,22 +90,31 @@ const Setting = () => {
         <Accordion.Header>Update Profile</Accordion.Header>
         <Accordion.Body>
           <Form onSubmit={handleProfileUpdate}>
-            <Form.Group controlId="formName">
-              <Form.Label>Name</Form.Label>
+            <Form.Group controlId="formAddress" className="mt-3">
+              <Form.Label>Address</Form.Label>
               <Form.Control
                 type="text"
-                value={userName}
-                onChange={(e) => setUserName(e.target.value)}
-                placeholder="Enter your name"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                placeholder="Enter your address"
               />
             </Form.Group>
-            <Form.Group controlId="formEmail" className="mt-3">
-              <Form.Label>Email</Form.Label>
+            <Form.Group controlId="formPhoneNumber" className="mt-3">
+              <Form.Label>Phone Number</Form.Label>
               <Form.Control
-                type="email"
-                value={userEmail}
-                onChange={(e) => setUserEmail(e.target.value)}
-                placeholder="Enter your email"
+                type="text"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                placeholder="Enter your phone number"
+              />
+            </Form.Group>
+            <Form.Group controlId="formBio" className="mt-3">
+              <Form.Label>Bio</Form.Label>
+              <Form.Control
+                as="textarea"
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                placeholder="Enter your bio"
               />
             </Form.Group>
             <Button variant="primary" type="submit" className="mt-3">

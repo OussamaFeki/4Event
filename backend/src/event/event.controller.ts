@@ -1,4 +1,4 @@
-import { Controller, Put, Param, UseGuards, Req, NotFoundException, ForbiddenException, Post, Body, Get, Delete } from '@nestjs/common';
+import { Controller, Put, Param, UseGuards, Req, NotFoundException, ForbiddenException, Post, Body, Get, Delete, Query } from '@nestjs/common';
 import { EventService } from './event.service';
 import { AuthGuard } from '../shared/auth/auth.gard';
 import { Request } from 'express';
@@ -133,5 +133,14 @@ export class EventController {
   @UseGuards(AuthGuard)
   async getAvailableProvidersForEvent(@Param('eventId') eventId: string): Promise<Provider[]> {
     return this.eventService.getAvailableProvidersForEvent(eventId);
+  }
+  @Get('between')
+  @UseGuards(AuthGuard)
+  async getEventsBetween(@Req() request: Request,@Query('date') date: string,@Query('startTime') startTime: string, @Query('endTime') endTime: string) {
+    const userId = request['user'].userId;
+
+    const dateObj = new Date(date);
+    const events = await this.eventService.getEventsBetween(userId,dateObj,startTime, endTime);
+    return { events };
   }
 }

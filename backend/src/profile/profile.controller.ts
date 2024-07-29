@@ -47,5 +47,11 @@ export class ProfileController {
 
     return this.profileService.hasProfile(id, userType);
   }
+  @Get('')
+  @UseGuards(AuthGuard)
+  async getProfile(@Req() request: Request) {
+    const token = request['user'];
+    return this.profileService.getProfile(token);
+  }
 }
 

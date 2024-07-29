@@ -323,9 +323,6 @@ export class EventService {
     events.forEach(event => {
       uniqueUserIds.add(event.organizer.toString());
     });
-    provider.requests.forEach(request => {
-      uniqueUserIds.add(request.toString());
-    });
 
     const totalUsers = uniqueUserIds.size;
 
@@ -392,5 +389,22 @@ export class EventService {
     });
 
     return availableProviders;
+  }
+  async getEventsBetween(userId: string, date: Date, startTime: string, endTime: string): Promise<Event[]> {
+    const user = await this.userModel.findById(userId).exec();
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+  
+    
+  
+    const events = await this.eventModel.find({
+      organizer: userId,
+      date: date,
+      startTime: { $gte: `${startTime}` },
+      endTime: { $lte: `${endTime}` }
+    }).exec();
+  
+    return events;
   }
 }

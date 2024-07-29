@@ -1,5 +1,3 @@
-// src/user/user.schema.ts
-
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 import { Profile } from '../profile/profile.schema'; // Adjust the import as per your structure
@@ -17,6 +15,9 @@ export class User extends Document {
 
   @Prop({ type: Profile }) // Assuming Profile is a subdocument schema
   profile: Profile;
+
+  @Prop()
+  avatar: string; // Add the image field
 
   @Prop({ default: Date.now })
   createdAt: Date;

@@ -22,7 +22,7 @@ const Providers = () => {
   }, []);
 
   const handleBookClick = (provider) => {
-    navigate('/organizer/provider-calendar', { state: { provider } });
+    navigate('/organizer/provider-calendar', { state: { provider1:provider} });
   };
 
   if (error) {

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from '../user/user.schema';
@@ -60,5 +60,26 @@ export class ProfileService {
     }
   
     return !!user.profile;
+  }
+  async getProfile(tokenPayload: any): Promise<any> {
+    let user;
+    if (tokenPayload.userId) {
+      user = await this.userModel.findById(tokenPayload.userId).populate('profile').exec();
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+    } else if (tokenPayload.providerId) {
+      user = await this.providerModel.findById(tokenPayload.providerId).populate('profile').exec();
+      if (!user) {
+        throw new NotFoundException('Provider not found');
+      }
+    } else {
+      throw new UnauthorizedException('Invalid token');
+    }
+
+    return {
+      ...user.toObject(),
+      profile: user.profile ? user.profile.toObject() : null,
+    };
   }
 }

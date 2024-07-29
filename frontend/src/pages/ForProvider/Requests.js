@@ -1,16 +1,29 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Table, Button, Alert } from 'react-bootstrap';
 import { CheckCircle, XCircle, InfoCircle } from 'react-bootstrap-icons';
-import { acceptEvent, refuseEvent } from '../../services/providerServices';
+import { acceptEvent, getRequests, refuseEvent } from '../../services/providerServices';
 
-const Requests = ({ requests }) => {
-  const [currentRequests, setCurrentRequests] = useState(requests);
-
+const Requests = () => {
+  const [currentRequests, setCurrentRequests] = useState([]);
+  useEffect(()=>{
+    const fetchData=async ()=>{
+      try{
+        const token = localStorage.getItem('token');
+      const requests = await getRequests(token);
+      setCurrentRequests(requests);
+      }catch(err){
+        console.log(err)
+      }
+      
+    }
+     fetchData();
+  },[])
   const handleAccept = async (eventId) => {
     try {
       const token = localStorage.getItem('token'); // Retrieve token from local storage
       await acceptEvent(token, eventId);
       setCurrentRequests(currentRequests.filter(request => request._id !== eventId));
+
     } catch (error) {
       console.error('Error accepting event:', error);
     }

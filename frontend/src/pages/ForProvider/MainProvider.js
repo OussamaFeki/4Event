@@ -15,7 +15,7 @@ const MainProvider = () => {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [requestsData, setRequestsData] = useState([]);
+ 
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -26,9 +26,6 @@ const MainProvider = () => {
 
         const data = await getdata();
         setUserData(data);
-
-        const requests = await getRequests(token); // Pass the token to getRequests
-        setRequestsData(requests);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -56,7 +53,7 @@ const MainProvider = () => {
                 <Routes>
                     <Route path='/events' element={<MyEvents/>}/>
                     <Route path='/'element={<Dashboard/>}/>
-                    <Route path='/requests'element={<Requests requests={requestsData}/>}/>
+                    <Route path='/requests'element={<Requests/>}/>
                     <Route path='/settings' element={<Setting/>}/>
                     <Route path='/info' element={<Info/>} />
                 </Routes>
