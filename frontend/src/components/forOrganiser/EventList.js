@@ -8,8 +8,9 @@ const EventList = ({ slotEvents, providerId }) => {
   const eventsPerPage = 3;
   const indexOfLastEvent = currentPage * eventsPerPage;
   const indexOfFirstEvent = indexOfLastEvent - eventsPerPage;
-  const currentEvents = slotEvents.slice(indexOfFirstEvent, indexOfLastEvent);
-  const totalPages = Math.ceil(slotEvents.length / eventsPerPage);
+  const [events, setEvents] = useState(slotEvents); // State to manage slotEvents
+  const currentEvents = events.slice(indexOfFirstEvent, indexOfLastEvent);
+  const totalPages = Math.ceil(events.length / eventsPerPage);
 
   const handlePageChange = (pageNumber) => setCurrentPage(pageNumber);
 
@@ -27,18 +28,43 @@ const EventList = ({ slotEvents, providerId }) => {
     setSelectedEventId(eventId);
     setShowConfirmationModal(true);
   };
+  // Function to delete an event and any overlapping events
+  const handleDeleteEvent = (eventId) => {
+    setEvents((prevEvents) => {
+      // Find the event with the given eventId
+      const eventToDelete = prevEvents.find((event) => event._id === eventId);
+      
+      if (!eventToDelete) {
+        return prevEvents;
+      }
   
+      const { startTime, endTime } = eventToDelete;
+  
+      // Filter out events that have the same eventId or overlapping times
+      return prevEvents.filter((event) => {
+        const isSameEvent = event._id === eventId;
+        const isOverlapping = event.date === eventToDelete.date &&
+          ((event.startTime < endTime && event.startTime >= startTime) ||
+          (event.endTime > startTime && event.endTime <= endTime) ||
+          (event.startTime <= startTime && event.endTime >= endTime));
+        
+        return !isSameEvent && !isOverlapping;
+      });
+    });
+  };
+
   const handleConfirmRequest = (eventId) => {
     setSentRequests((prev) => ({
       ...prev,
       [eventId]: true
     }));
+    handleDeleteEvent(eventId); // Delete event after confirming request
     handleCloseConfirmationModal();
   };
 
   return (
     <Container>
-      {slotEvents.length > 0 ? (
+      {events.length > 0 ? (
         <>
           <Row>
             {currentEvents.map((event, index) => (
@@ -65,6 +91,7 @@ const EventList = ({ slotEvents, providerId }) => {
                   eventId={event._id}
                   providerId={providerId}
                   onConfirm={() => handleConfirmRequest(event._id)}
+                  deleteCard={handleDeleteEvent}
                 />
               </Col>
             ))}

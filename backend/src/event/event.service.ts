@@ -61,6 +61,29 @@ export class EventService {
       provider.events.push(event);
       await provider.save();
     }
+
+       // Remove overlapping requests for the same date from the provider's requests array
+       await this.providerModel.findByIdAndUpdate(
+        providerId,
+        {
+          $pull: {
+            requests: {
+              $in: await this.eventModel.find({
+                _id: { $in: provider.requests }, // Find requests in the provider's requests array
+                date: event.date, // Ensure events are on the same date
+                $or: [
+                  // Check overlapping conditions
+                  { startTime: { $gte: event.startTime, $lt: event.endTime } }, // Request starts during accepted event
+                  { endTime: { $gt: event.startTime, $lte: event.endTime } }, // Request ends during accepted event
+                  { startTime: { $lte: event.startTime }, endTime: { $gte: event.endTime } }, // Request completely within accepted event
+                ],
+              }).select('_id')
+            },
+          },
+        },
+        { new: true }
+      ).exec();
+    
   }
 
   async refuseEvent(providerId: string, eventId: string): Promise<void> {

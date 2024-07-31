@@ -46,14 +46,19 @@ const Calendar = ({  userId,providerId }) => {
     start: `${event.date.split('T')[0]}T${event.startTime}`,
     end: `${event.date.split('T')[0]}T${event.endTime}`
   }));
-  const formattedRequests=requests.map(request=>({
-    title:'wait for respense',
-    start: `${request.date.split('T')[0]}T${request.startTime}`,
-    end: `${request.date.split('T')[0]}T${request.endTime}`,
-    backgroundColor: 'yellow',
-    textColor: 'black'
-  })
-  )
+  const formattedRequests = requests.map(request => {
+    if (request.organizer === userId) {
+      return {
+    title: 'wait for response',
+        start: `${request.date.split('T')[0]}T${request.startTime}`,
+        end: `${request.date.split('T')[0]}T${request.endTime}`,
+        backgroundColor: 'yellow',
+        textColor: 'black'
+      };
+    } else {
+      return null; // Filter out requests not matching the userId
+    }
+  }).filter(request => request !== null); 
 
   const handleEventClick = async (clickInfo) => {
     if (clickInfo.event.title === '+') {

@@ -21,9 +21,33 @@ const Requests = () => {
   const handleAccept = async (eventId) => {
     try {
       const token = localStorage.getItem('token'); // Retrieve token from local storage
+  
+      // Accept the event
       await acceptEvent(token, eventId);
-      setCurrentRequests(currentRequests.filter(request => request._id !== eventId));
-
+  
+      // Retrieve the details of the accepted event
+      const acceptedEvent = currentRequests.find(request => request._id === eventId);
+  
+      // Filter out overlapping requests from currentRequests
+      const updatedRequests = currentRequests.filter(request => {
+        if (request._id === eventId) {
+          return false;
+        }
+  
+        // Check if the request overlaps with the accepted event on the same date
+        if (request.date === acceptedEvent.date) {
+          return !(
+            (request.startTime >= acceptedEvent.startTime && request.startTime < acceptedEvent.endTime) ||
+            (request.endTime > acceptedEvent.startTime && request.endTime <= acceptedEvent.endTime) ||
+            (request.startTime <= acceptedEvent.startTime && request.endTime >= acceptedEvent.endTime)
+          );
+        }
+  
+        return true;
+      });
+  
+      setCurrentRequests(updatedRequests);
+  
     } catch (error) {
       console.error('Error accepting event:', error);
     }
