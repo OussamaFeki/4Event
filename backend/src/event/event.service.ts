@@ -430,4 +430,65 @@ export class EventService {
   
     return events;
   }
+  async calculateAvailabilityRate(providerId: string): Promise<{ availableTime: number, pauseTime: number, eventTime: number }> {
+    const provider = await this.providerModel.findById(providerId).populate('availabilities events').exec();
+    
+    if (!provider) {
+      throw new NotFoundException('Provider not found');
+    }
+  
+    const { availabilities, events } = provider;
+  
+    let availableTime = 0;
+    let pauseTime = 0;
+    let eventTime = 0;
+  
+    // Mapping of JavaScript Date getDay() to DayOfWeek enum
+    const dayOfWeekMap = [
+      DayOfWeek.SUNDAY,
+      DayOfWeek.MONDAY,
+      DayOfWeek.TUESDAY,
+      DayOfWeek.WEDNESDAY,
+      DayOfWeek.THURSDAY,
+      DayOfWeek.FRIDAY,
+      DayOfWeek.SATURDAY
+    ];
+  
+    for (const availability of availabilities) {
+      const startAvailability = new Date(`1970-01-01T${availability.startTime}Z`);
+      const endAvailability = new Date(`1970-01-01T${availability.endTime}Z`);
+      const totalAvailabilityMinutes = differenceInMinutes(endAvailability, startAvailability);
+      availableTime += totalAvailabilityMinutes;
+  
+      // Calculate event time and pause time for each availability
+      const eventsForDay = events.filter(event => 
+        dayOfWeekMap[new Date(event.date).getDay()] === availability.dayOfWeek
+      );
+  
+      if (eventsForDay.length > 0) {
+        // Sort events by start time
+        eventsForDay.sort((a, b) => new Date(`1970-01-01T${a.startTime}Z`).getTime() - new Date(`1970-01-01T${b.startTime}Z`).getTime());
+  
+        let previousEndTime = startAvailability;
+        
+        for (const event of eventsForDay) {
+          const startEvent = new Date(`1970-01-01T${event.startTime}Z`);
+          const endEvent = new Date(`1970-01-01T${event.endTime}Z`);
+          eventTime += differenceInMinutes(endEvent, startEvent);
+  
+          if (startEvent > previousEndTime) {
+            pauseTime += differenceInMinutes(startEvent, previousEndTime);
+          }
+  
+          previousEndTime = endEvent;
+        }
+  
+        if (previousEndTime < endAvailability) {
+          pauseTime += differenceInMinutes(endAvailability, previousEndTime);
+        }
+      }
+    }
+  
+    return { availableTime, pauseTime, eventTime };
+  }
 }

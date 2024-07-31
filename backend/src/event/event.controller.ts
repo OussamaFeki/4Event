@@ -114,6 +114,14 @@ export class EventController {
     const data = await this.eventService.getProviderStats(providerId);
     return data;
   }
+  //for the Doghnuts Chart
+  @Get('provider/Doghnuts')
+  @UseGuards(AuthGuard)
+  async getProviderDoghnuts(@Req() request: Request) {
+    const providerId = request['user'].providerId;
+    const data = await this.eventService.calculateAvailabilityRate(providerId);
+    return data;
+  }
   @Get('organizer/events')
   @UseGuards(AuthGuard)
   async getOrganizerEvents(@Req() request:Request){

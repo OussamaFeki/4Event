@@ -4,7 +4,7 @@ import axios from 'axios';
 const API_BASE_URL = 'http://localhost:3001'; // Replace with your actual API URL
 
 // Function to get provider data
-export const getProviderData = async (token) => {
+export const getSelfData = async (token) => {
   try {
     const response = await axios.get(`${API_BASE_URL}/events/provider/data`, {
       headers: {
@@ -106,4 +106,65 @@ export const getMonthlyBudgetSum = async (token) => {
     console.error('Error fetching monthly budget sum:', error);
     throw error;
   }
+};
+// Function to update availability
+export const updateAvailability = async (token, availabilityDto) => {
+  try {
+    const response = await axios.put(`${API_BASE_URL}/availability/update`, availabilityDto, {
+      headers: {
+        Authorization: `Bearer ${token}`, // Assuming you're using JWT for auth
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error('Error updating availability:', error);
+    throw error;
+  }
+};
+// Function to add availability
+export const addAvailability = async (token, availabilityDto) => {
+  try {
+    const response = await axios.post(`${API_BASE_URL}/availability/add`, availabilityDto, {
+      headers: {
+        Authorization: `Bearer ${token}`, // Assuming you're using JWT for auth
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error('Error updating availability:', error);
+    throw error;
+  }
+};
+// Function to get provider availabilities
+export const getAvailabilities = async (token) => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/availability/availabilities`, {
+      headers: {
+        Authorization: `Bearer ${token}`, // Assuming you're using JWT for auth
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching availabilities:', error);
+    throw error;
+  }
+
+};
+export const getDoghnuts = async (token) => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/events/provider/Doghnuts`, {
+      headers: {
+        Authorization: `Bearer ${token}`, // Assuming you're using JWT for auth
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching availabilities:', error);
+    throw error;
+  }
+  
 };

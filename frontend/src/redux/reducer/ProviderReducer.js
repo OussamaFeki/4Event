@@ -1,11 +1,13 @@
-// src/features/provider/providerReducer.js
+// src/features/provider/providerSlice.js
 import { createSlice } from '@reduxjs/toolkit';
-import { fetchProviderData, sendProviderRequest } from '../actions/providerAction';
+import { fetchProviderData, sendProviderRequest, fetchData, fetchAvailabilities, updateProviderAvailability } from '../actions/providerAction';
 
 const initialState = {
   provider: null,
   loading: false,
   error: null,
+  availabilities: [],
+  selfData: null,
 };
 
 const providerSlice = createSlice({
@@ -36,9 +38,43 @@ const providerSlice = createSlice({
       .addCase(sendProviderRequest.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+      .addCase(fetchData.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchData.fulfilled, (state, action) => {
+        state.loading = false;
+        state.selfData = action.payload;
+      })
+      .addCase(fetchData.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchAvailabilities.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchAvailabilities.fulfilled, (state, action) => {
+        state.loading = false;
+        state.availabilities = action.payload;
+      })
+      .addCase(fetchAvailabilities.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(updateProviderAvailability.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateProviderAvailability.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(updateProviderAvailability.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
   },
 });
 
 export default providerSlice.reducer;
-

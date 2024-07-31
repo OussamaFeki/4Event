@@ -60,6 +60,45 @@ export class AvailabilityService {
 
     return this.availabilityModel.find({ provider: providerId }).exec();
   }
+  // New method to add availability with overlap prevention
+  async addAvailability(providerId: string, availabilityDto: any): Promise<Availability> {
+    const provider = await this.providerModel.findById(providerId).exec();
+
+    if (!provider) {
+      throw new NotFoundException('Provider not found');
+    }
+
+    // Check for overlapping availabilities
+    const existingAvailabilities = await this.availabilityModel.find({
+      provider: providerId,
+      dayOfWeek: availabilityDto.dayOfWeek,
+      $or: [
+        {
+          startTime: { $lt: availabilityDto.endTime },
+          endTime: { $gt: availabilityDto.startTime }
+        }
+      ]
+    }).exec();
+
+    if (existingAvailabilities.length > 0) {
+      throw new BadRequestException('Overlapping availability found');
+    }
+
+    // Create new availability
+    const newAvailability = new this.availabilityModel({
+      dayOfWeek: availabilityDto.dayOfWeek,
+      startTime: availabilityDto.startTime,
+      endTime: availabilityDto.endTime,
+      provider: providerId,
+    });
+
+    await newAvailability.save();
+    provider.availabilities.push(newAvailability);
+    provider.updatedAt = new Date();
+    await provider.save();
+
+    return newAvailability;
+  }
 }
 
 

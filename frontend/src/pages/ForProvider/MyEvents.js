@@ -1,33 +1,28 @@
 import React, { useEffect, useState } from 'react';
-import { getProviderData } from '../../services/providerServices';
-import Calendar from '../../components/forProvider/Calender'
+import { useDispatch, useSelector } from 'react-redux';
+import { Button, Row, Col } from 'react-bootstrap';
+import Calendar from '../../components/forProvider/Calender';
+import AvailabilityModal from '../../components/forProvider/AvailabilityModal';
+import { fetchData, updateProviderAvailability } from '../../redux/actions/providerAction';
+
 const MyEvents = () => {
-  const [data, setData] = useState({ availabilities: [], events: [] });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const dispatch = useDispatch();
+  const { selfData, loading, error } = useSelector((state) => state.provider);
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
-    const fetchProviderData = async () => {
-      try {
-        const token = localStorage.getItem('token'); // Adjust this according to how you store the token
-        const providerData = await getProviderData(token);
+    dispatch(fetchData());
+  }, [dispatch]);
 
-        // Map dayOfWeek to uppercase as per the DayOfWeek enum
-        const correctedAvailabilities = providerData.availabilities.map((availability) => ({
-          ...availability,
-          dayOfWeek: availability.dayOfWeek.toUpperCase(),
-        }));
+  const handleShowModal = () => setShowModal(true);
+  const handleCloseModal = () => setShowModal(false);
 
-        setData({ ...providerData, availabilities: correctedAvailabilities });
-      } catch (err) {
-        setError(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProviderData();
-  }, []);
+  const handleSaveAvailability = (newAvailability) => {
+    dispatch(updateProviderAvailability(newAvailability)).then(() => {
+      dispatch(fetchData()); // Re-fetch data after updating availability
+    });
+    setShowModal(false);
+  };
 
   if (loading) {
     return <div>Loading...</div>;
@@ -37,9 +32,27 @@ const MyEvents = () => {
     return <div>Error: {error.message}</div>;
   }
 
+  // Ensure selfData is defined before accessing its properties
+  const correctedAvailabilities = selfData?.availabilities?.map((availability) => ({
+    ...availability,
+    dayOfWeek: availability.dayOfWeek.toUpperCase(),
+  })) || [];
+
   return (
     <div>
-      <Calendar events={data.events} availability={data.availabilities} />
+      <Row className="mb-3">
+        <Col className="d-flex justify-content-end">
+          <Button variant="primary" onClick={handleShowModal}>
+            Add Availability
+          </Button>
+        </Col>
+      </Row>
+      <Calendar events={selfData?.events || []} availability={correctedAvailabilities} />
+      <AvailabilityModal
+        show={showModal}
+        handleClose={handleCloseModal}
+        handleSave={handleSaveAvailability}
+      />
     </div>
   );
 };

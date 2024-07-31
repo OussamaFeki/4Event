@@ -9,7 +9,7 @@ import Dashboard from './Dashboard';
 import Requests from './Requests';
 import Setting from '../both/Setting';
 import Info from '../both/Info';
-import { getRequests } from '../../services/providerServices';
+import ManageAvailability from './ManageAvailability';
 const MainProvider = () => {
 
   const [userData, setUserData] = useState(null);
@@ -56,6 +56,7 @@ const MainProvider = () => {
                     <Route path='/requests'element={<Requests/>}/>
                     <Route path='/settings' element={<Setting/>}/>
                     <Route path='/info' element={<Info/>} />
+                    <Route path='/manage'element={<ManageAvailability/>}/>
                 </Routes>
             </Container>
         </Sidebar>
