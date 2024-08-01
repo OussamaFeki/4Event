@@ -1,12 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
 
-const AvailabilityModal = ({ show, handleClose, handleSave }) => {
+const AvailabilityModal = ({ show, handleClose, handleSave, start, end, day }) => {
   const [availability, setAvailability] = useState({
-    dayOfWeek: '',
-    startTime: '',
-    endTime: '',
+    dayOfWeek: day || '',
+    startTime: start || '',
+    endTime: end || '',
   });
+
+  useEffect(() => {
+    setAvailability({
+      dayOfWeek: day || '',
+      startTime: start || '',
+      endTime: end || '',
+    });
+  }, [day, start, end]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;

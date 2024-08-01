@@ -2,13 +2,17 @@ import React, { useEffect, useState } from 'react';
 import { Button, Card, Col, Row } from 'react-bootstrap';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchAvailabilities } from '../../redux/actions/providerAction';
+import AvailabilityModal from '../../components/forProvider/AvailabilityModal';
 
 
 const ManageAvailability = () => {
   const dispatch = useDispatch();
   const { availabilities, loading, error } = useSelector((state) => state.provider); // Adjust according to your state structure
   const [currentPage, setCurrentPage] = useState(1);
-  const availabilitiesPerPage = 5;
+  const [showModal, setShowModal] = useState(false);
+  const [selectedAvailability, setSelectedAvailability] = useState(null);
+
+  const availabilitiesPerPage = 3;
 
   useEffect(() => {
     dispatch(fetchAvailabilities());
@@ -18,9 +22,19 @@ const ManageAvailability = () => {
     // dispatch(deleteAvailability(id));
   };
 
-  const handleUpdate = (id) => {
-    // Add your update logic here
-    // dispatch(updateAvailability(id));
+  const handleUpdate = (availability) => {
+    setSelectedAvailability(availability);
+    setShowModal(true);
+  };
+
+  const handleClose = () => {
+    setShowModal(false);
+    setSelectedAvailability(null);
+  };
+
+  const handleSave = (updatedAvailability) => {
+    // dispatch(updateAvailability(updatedAvailability));
+    handleClose();
   };
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
@@ -49,7 +63,7 @@ const ManageAvailability = () => {
                   Start Time: {availability.startTime} <br />
                   End Time: {availability.endTime}
                 </Card.Text>
-                <Button variant="primary" onClick={() => handleUpdate(availability._id)}>
+                <Button variant="primary" onClick={() => handleUpdate(availability)}>
                   Update
                 </Button>
                 <Button variant="danger" onClick={() => handleDelete(availability._id)} className="ml-2">
@@ -66,6 +80,16 @@ const ManageAvailability = () => {
         paginate={paginate}
         currentPage={currentPage}
       />
+      {selectedAvailability && (
+        <AvailabilityModal
+          show={showModal}
+          handleClose={handleClose}
+          handleSave={handleSave}
+          day={selectedAvailability.dayOfWeek}
+          start={selectedAvailability.startTime}
+          end={selectedAvailability.endTime}
+        />
+      )}
     </div>
   );
 };
@@ -93,4 +117,3 @@ const Pagination = ({ availabilitiesPerPage, totalAvailabilities, paginate, curr
 };
 
 export default ManageAvailability;
-

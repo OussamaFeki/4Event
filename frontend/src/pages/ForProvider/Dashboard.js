@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Person, CalendarEvent, CurrencyDollar } from 'react-bootstrap-icons';
-import DoughnutChart from '../../components/forOrganiser/Chart';
+import DoughnutChart from '../../components/forProvider/Chart';
 import CardStatic from '../../components/CardStatic'; // Import CardStatic component
 import './Dashboard.css'; // Import CSS for Dashboard styling
 import NumericChart from '../../components/Numericchart';

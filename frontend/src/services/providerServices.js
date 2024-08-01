@@ -168,3 +168,18 @@ export const getDoghnuts = async (token) => {
   }
   
 };
+// Function to get doughnut chart data
+export const getDoughnuts = async (token) => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/events/provider/doghnuts`, {
+      headers: {
+        Authorization: `Bearer ${token}`, // Assuming you're using JWT for auth
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching doughnut chart data:', error);
+    throw error;
+  }
+};
