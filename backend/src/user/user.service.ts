@@ -9,7 +9,7 @@ import { ConfigService } from '@nestjs/config';
 import { Provider } from 'src/provider/provider.schema';
 import { v4 as uuidv4 } from 'uuid';
 import { join } from 'path';
-import { writeFileSync } from 'fs';
+import { writeFileSync, mkdirSync, existsSync, unlinkSync } from 'fs';
 @Injectable()
 export class UserService {
   constructor(
@@ -128,10 +128,26 @@ export class UserService {
       throw new NotFoundException('User or Provider not found');
     }
 
+    // Ensure the uploads directory exists
+    const uploadsDir = join(__dirname, '..', '..', 'uploads');
+    if (!existsSync(uploadsDir)) {
+      mkdirSync(uploadsDir);
+    }
+
+    // Delete the old avatar if it exists
+    if (userOrProvider.avatar) {
+      const oldAvatarPath = join(__dirname, '..', '..', userOrProvider.avatar);
+      if (existsSync(oldAvatarPath)) {
+        unlinkSync(oldAvatarPath);
+      }
+    }
+
+    // Generate a unique filename and save the file
     const filename = `${uuidv4()}-${file.originalname}`;
-    const filePath = join(__dirname, '..', '..', 'uploads', filename);
+    const filePath = join(uploadsDir, filename);
     writeFileSync(filePath, file.buffer);
 
+    // Update the avatar path in the database
     userOrProvider.avatar = `uploads/${filename}`;
     await userOrProvider.save();
 
