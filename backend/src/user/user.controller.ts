@@ -1,8 +1,9 @@
-import { Controller, Post, Body , Put , Param, Get, UseGuards, Req, UnauthorizedException, NotFoundException } from '@nestjs/common';
+import { Controller, Post, Body , Put , Param, Get, UseGuards, Req, UnauthorizedException, NotFoundException, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from '../shared/dto/create-user.dto';
 import { AuthGuard } from 'src/shared/auth/auth.gard';
 import { Request } from 'express';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('users')
 export class UserController {
@@ -46,6 +47,18 @@ export class UserController {
       throw new NotFoundException('Provider not found');
     }
     return provider;
+  }
+  @Post('avatar')
+  @UseGuards(AuthGuard)
+  @UseInterceptors(FileInterceptor('file'))
+  async updateAvatar(@Req() request: Request, @UploadedFile() file: Express.Multer.File) {
+    const userId = request['user'].userId;
+    const providerId = request['user'].providerId;
+    if (!userId && !providerId) {
+      throw new UnauthorizedException('Invalid token');
+    }
+
+    return this.userService.updateAvatar(userId, providerId, file);
   }
 }
 

@@ -3,6 +3,7 @@ import { Button, Card, Col, Row } from 'react-bootstrap';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchAvailabilities } from '../../redux/actions/providerAction';
 import AvailabilityModal from '../../components/forProvider/AvailabilityModal';
+import { updateAvailabilityByID } from '../../services/providerServices';
 
 
 const ManageAvailability = () => {
@@ -32,8 +33,14 @@ const ManageAvailability = () => {
     setSelectedAvailability(null);
   };
 
-  const handleSave = (updatedAvailability) => {
-    // dispatch(updateAvailability(updatedAvailability));
+  const handleSave = async (updatedAvailability) => {
+    const token = localStorage.getItem('token'); // Adjust based on your token storage method
+    try {
+      await updateAvailabilityByID(token, selectedAvailability._id, updatedAvailability);
+      dispatch(fetchAvailabilities()); // Refresh the availabilities list after update
+    } catch (error) {
+      console.error('Error updating availability:', error);
+    }
     handleClose();
   };
 

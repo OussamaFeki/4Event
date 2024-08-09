@@ -3,8 +3,7 @@ import Accordion from 'react-bootstrap/Accordion';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { getProfile, updateProfile } from '../../services/auth';
-
+import { getProfile, updateProfile, updateAvatar } from '../../services/auth';
 
 const Setting = () => {
   const [userPassword, setUserPassword] = useState('');
@@ -21,7 +20,7 @@ const Setting = () => {
         try {
           const profileData = await getProfile();
           if (profileData.profile) {
-            setAddress(profileData.profile.address|| '');
+            setAddress(profileData.profile.address || '');
             setPhoneNumber(profileData.profile.phoneNumber || '');
             setBio(profileData.profile.bio || '');
           }
@@ -50,10 +49,18 @@ const Setting = () => {
     console.log('Password Changed', { oldPassword, userPassword });
   };
 
-  const handleChangeAvatar = (e) => {
+  const handleChangeAvatar = async (e) => {
     e.preventDefault();
-    // Logic for changing avatar
-    console.log('Avatar Changed', avatar);
+    try {
+      if (avatar) {
+        await updateAvatar(avatar);
+        console.log('Avatar Changed', avatar);
+      } else {
+        console.log('No avatar selected');
+      }
+    } catch (error) {
+      console.error('Change avatar failed:', error.message);
+    }
   };
 
   return (

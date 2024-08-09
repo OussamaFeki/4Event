@@ -99,6 +99,36 @@ export class AvailabilityService {
 
     return newAvailability;
   }
+  async updateAvailabilityById(providerId: string, availabilityId: string, availabilityDto: any): Promise<Availability> {
+    const provider = await this.providerModel.findById(providerId).exec();
+  
+    if (!provider) {
+      throw new NotFoundException('Provider not found');
+    }
+  
+    const availability = await this.availabilityModel.findOne({
+      _id: availabilityId,
+      provider: providerId,
+    }).exec();
+  
+    if (!availability) {
+      throw new NotFoundException('Availability not found');
+    }
+  
+    // Update existing availability
+    availability.dayOfWeek = availabilityDto.dayOfWeek || availability.dayOfWeek;
+    availability.startTime = availabilityDto.startTime || availability.startTime;
+    availability.endTime = availabilityDto.endTime || availability.endTime;
+    availability.updatedAt = new Date();
+  
+    await availability.save();
+  
+    provider.updatedAt = new Date();
+    await provider.save();
+  
+    return availability;
+  }
+  
 }
 
 

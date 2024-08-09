@@ -10,6 +10,7 @@ export const fetchProviderData = createAsyncThunk(
     try {
       const token = localStorage.getItem('token');
       const response = await getProviderData(token, providerId);
+      console.log(response)
       return response;
     } catch (error) {
       return thunkAPI.rejectWithValue(error.response ? error.response.data : error.message);

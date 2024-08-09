@@ -1,4 +1,4 @@
-import { Controller, Put, Body, UseGuards, Req, UnauthorizedException, Get, Post } from '@nestjs/common';
+import { Controller, Put, Body, UseGuards, Req, UnauthorizedException, Get, Post, Param } from '@nestjs/common';
 import { AvailabilityService } from './availability.service';
 import { AuthGuard } from '../shared/auth/auth.gard';
 import { Request } from 'express';
@@ -35,4 +35,19 @@ export class AvailabilityController {
 
     return this.availabilityService.addAvailability(providerId, availabilityDto);
   }
+  @Put('update/:availabilityId')
+@UseGuards(AuthGuard)
+async updateAvailabilityById(
+  @Req() request: Request,
+  @Body() availabilityDto: any,
+  @Param('availabilityId') availabilityId: string
+) {
+  const providerId = request['user'].providerId;
+
+  if (!providerId) {
+    throw new UnauthorizedException('Invalid token');
+  }
+
+  return this.availabilityService.updateAvailabilityById(providerId, availabilityId, availabilityDto);
+}
 }

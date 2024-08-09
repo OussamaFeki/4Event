@@ -36,24 +36,26 @@ const AvailabilityModal = ({ show, handleClose, handleSave, start, end, day }) =
       </Modal.Header>
       <Modal.Body>
         <Form>
-          <Form.Group controlId="dayOfWeek">
-            <Form.Label>Day of the Week</Form.Label>
-            <Form.Control
-              as="select"
-              name="dayOfWeek"
-              value={availability.dayOfWeek}
-              onChange={handleChange}
-            >
-              <option value="">Select a day</option>
-              <option value="MONDAY">Monday</option>
-              <option value="TUESDAY">Tuesday</option>
-              <option value="WEDNESDAY">Wednesday</option>
-              <option value="THURSDAY">Thursday</option>
-              <option value="FRIDAY">Friday</option>
-              <option value="SATURDAY">Saturday</option>
-              <option value="SUNDAY">Sunday</option>
-            </Form.Control>
-          </Form.Group>
+          {day === null || day === undefined ? (
+            <Form.Group controlId="dayOfWeek">
+              <Form.Label>Day of the Week</Form.Label>
+              <Form.Control
+                as="select"
+                name="dayOfWeek"
+                value={availability.dayOfWeek}
+                onChange={handleChange}
+              >
+                <option value="">Select a day</option>
+                <option value="MONDAY">Monday</option>
+                <option value="TUESDAY">Tuesday</option>
+                <option value="WEDNESDAY">Wednesday</option>
+                <option value="THURSDAY">Thursday</option>
+                <option value="FRIDAY">Friday</option>
+                <option value="SATURDAY">Saturday</option>
+                <option value="SUNDAY">Sunday</option>
+              </Form.Control>
+            </Form.Group>
+          ) : null}
           <Form.Group controlId="startTime">
             <Form.Label>Start Time</Form.Label>
             <Form.Control

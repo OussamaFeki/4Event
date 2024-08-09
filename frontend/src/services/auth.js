@@ -108,3 +108,25 @@ export const getProfile = async () => {
     throw new Error(error.response.data.message || 'Get profile failed');
   }
 };
+export const updateAvatar = async (file) => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('You are not logged in');
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await axios.post(`${API_URL}/users/avatar`, formData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response.data.message || 'Update avatar failed');
+  }
+};

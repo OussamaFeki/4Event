@@ -113,7 +113,7 @@ const Calendar = ({  userId,providerId }) => {
               }))}
               selectConstraint="businessHours"
               selectMirror={true}
-              selectable={true}
+              selectable={false}
               nowIndicator={true}
               eventContent={eventInfo => renderEventContent(eventInfo)}
               allDaySlot={false}

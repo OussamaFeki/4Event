@@ -112,17 +112,29 @@ export class UserService {
       throw new BadRequestException('Error fetching provider data');
     }
   }
-  async updateAvatar(userId: string, file: Express.Multer.File): Promise<User> {
-    const user = await this.userModel.findById(userId).exec();
-    if (!user) {
-      throw new NotFoundException('User not found');
+  async updateAvatar(userId: string, providerId: string, file: Express.Multer.File): Promise<User | Provider> {
+    let userOrProvider;
+    let entityType;
+
+    if (userId) {
+      userOrProvider = await this.userModel.findById(userId).exec();
+      entityType = 'user';
+    } else if (providerId) {
+      userOrProvider = await this.providerModel.findById(providerId).exec();
+      entityType = 'provider';
+    }
+
+    if (!userOrProvider) {
+      throw new NotFoundException('User or Provider not found');
     }
 
     const filename = `${uuidv4()}-${file.originalname}`;
     const filePath = join(__dirname, '..', '..', 'uploads', filename);
     writeFileSync(filePath, file.buffer);
 
-    user.avatar = `/uploads/${filename}`;
-    return user.save();
+    userOrProvider.avatar = `uploads/${filename}`;
+    await userOrProvider.save();
+
+    return userOrProvider;
   }
-}
+} 

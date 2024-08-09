@@ -115,7 +115,7 @@ export class EventController {
     return data;
   }
   //for the Doghnuts Chart
-  @Get('provider/Doghnuts')
+  @Get('provider/doghnuts')
   @UseGuards(AuthGuard)
   async getProviderDoghnuts(@Req() request: Request) {
     const providerId = request['user'].providerId;

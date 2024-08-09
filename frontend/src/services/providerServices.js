@@ -183,3 +183,22 @@ export const getDoughnuts = async (token) => {
     throw error;
   }
 };
+// Function to update availability by ID
+export const updateAvailabilityByID = async (token, id, availabilityDto) => {
+  try {
+    const response = await axios.put(
+      `${API_BASE_URL}/availability/update/${id}`, 
+      availabilityDto, // Pass the availabilityDto in the request body
+      {
+        headers: {
+          Authorization: `Bearer ${token}`, // Assuming you're using JWT for auth
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error('Error updating availability by ID:', error);
+    throw error;
+  }
+};

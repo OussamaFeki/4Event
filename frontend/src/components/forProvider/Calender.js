@@ -9,7 +9,7 @@ import './Calendar.css';
 
 const Calendar = ({ events, availability, requests, userId }) => {
   const invalidTimeSlots = generateInvalidTimeSlots(availability);
-  
+
   const formattedEvents = events.map(event => ({
     title: event.name,
     start: `${event.date.split('T')[0]}T${event.startTime}`,
@@ -35,9 +35,8 @@ const Calendar = ({ events, availability, requests, userId }) => {
           startTime: slot.startTime,
           endTime: slot.endTime
         }))}
-        selectConstraint="businessHours"
         selectMirror={true}
-        selectable={true}
+        selectable={false}  // Disable selectable to prevent selecting slots
         nowIndicator={true}
         eventContent={eventInfo => renderEventContent(eventInfo)}
         allDaySlot={false}
@@ -65,9 +64,8 @@ const generateInvalidTimeSlots = (availability) => {
 
   daysOfWeek.forEach((day) => {
     const dayAvailability = availability.filter(slot => dayOfWeekEnumToNumber(slot.dayOfWeek) === day);
-    console.log(dayAvailability)
+    
     if (dayAvailability.length === 0) {
-      // If no availability for this day, mark the whole day as invalid
       invalidTimeSlots.push({
         title: 'Invalid',
         daysOfWeek: [day],
@@ -75,13 +73,11 @@ const generateInvalidTimeSlots = (availability) => {
         endTime: '24:00',
         display: 'background',
         backgroundColor: 'rgba(255, 0, 0)',
-        textColor: 'black' // Black text color for Invalid
+        textColor: 'black'
       });
     } else {
-      // Sort availability slots for this day
       dayAvailability.sort((a, b) => a.startTime.localeCompare(b.startTime));
 
-      // Add invalid slot before first available slot if needed
       if (dayAvailability[0].startTime !== '00:00') {
         invalidTimeSlots.push({
           title: 'Invalid',
@@ -90,11 +86,10 @@ const generateInvalidTimeSlots = (availability) => {
           endTime: dayAvailability[0].startTime,
           display: 'background',
           backgroundColor: 'rgba(255, 0, 0)',
-          textColor: 'black' // Black text color for Invalid
+          textColor: 'black'
         });
       }
 
-      // Add invalid slots between available slots
       for (let i = 0; i < dayAvailability.length - 1; i++) {
         invalidTimeSlots.push({
           title: 'Invalid',
@@ -103,11 +98,10 @@ const generateInvalidTimeSlots = (availability) => {
           endTime: dayAvailability[i + 1].startTime,
           display: 'background',
           backgroundColor: 'rgba(255, 0, 0)',
-          textColor: 'black' // Black text color for Invalid
+          textColor: 'black'
         });
       }
 
-      // Add invalid slot after last available slot if needed
       const lastSlot = dayAvailability[dayAvailability.length - 1];
       if (lastSlot.endTime !== '24:00') {
         invalidTimeSlots.push({
@@ -117,7 +111,7 @@ const generateInvalidTimeSlots = (availability) => {
           endTime: '24:00',
           display: 'background',
           backgroundColor: 'rgba(255, 0, 0)',
-          textColor: 'black' // Black text color for Invalid
+          textColor: 'black'
         });
       }
     }
@@ -158,10 +152,10 @@ Calendar.propTypes = {
     PropTypes.shape({
       start: PropTypes.string.isRequired,
       end: PropTypes.string.isRequired,
-      organizer: PropTypes.string.isRequired, // Ensure the requests have an organizer property
+      organizer: PropTypes.string.isRequired,
     })
   ),
-  userId: PropTypes.string.isRequired // Add userId prop type
+  userId: PropTypes.string.isRequired
 };
 
 export default Calendar;
