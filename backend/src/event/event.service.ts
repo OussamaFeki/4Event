@@ -147,7 +147,7 @@ export class EventService {
     }
 
     // Check if the event time is within the provider's availability time
-    const eventDayOfWeek = DayOfWeek[event.date.toLocaleString('default', { weekday: 'long' }).toUpperCase()];
+    const eventDayOfWeek = event.date.toLocaleString('default', { weekday: 'long' }).toUpperCase();
     console.log(eventDayOfWeek);
     const availability = await this.availabilityModel.findOne({
       provider: provider._id,
@@ -383,43 +383,40 @@ export class EventService {
     // Find the event by ID
     const event = await this.eventModel.findById(eventId).exec();
     if (!event) {
-      throw new NotFoundException('Event not found');
+        throw new NotFoundException('Event not found');
     }
-  
-    // Get the day of the week for the event date (Sunday = 0, Monday = 1, etc.)
+
+    // Get the day of the week for the event date in uppercase (e.g., "SUNDAY")
     const eventDayOfWeek = event.date.toLocaleString('default', { weekday: 'long' }).toUpperCase();
     console.log(eventDayOfWeek);
-    
+
     // Find all providers with their availabilities and events
     const providers = await this.providerModel.find().populate('availabilities events').exec();
-  
+
     // Filter providers to find those available for the event
     const availableProviders = providers.filter(provider => {
-      // Check if the provider has availability that matches the event's day and time
-      const isAvailable = provider.availabilities.some(availability =>
-        availability.dayOfWeek === eventDayOfWeek &&
-        availability.startTime <= event.startTime &&
-        availability.endTime >= event.endTime
-      );
-  
-      // If the provider is not available, skip to the next one
-      if (!isAvailable) return false;
-  
-      // Check if the provider has an overlapping event
-      const hasOverlappingEvent = provider.events.some(existingEvent =>
-        existingEvent.date.getTime() === event.date.getTime() && (
-          (existingEvent.startTime >= event.startTime && existingEvent.startTime < event.endTime) ||
-          (existingEvent.endTime > event.startTime && existingEvent.endTime <= event.endTime) ||
-          (existingEvent.startTime <= event.startTime && existingEvent.endTime >= event.endTime)
-        )
-      );
-  
-      // Return true if the provider is available and has no overlapping events
-      return !hasOverlappingEvent;
+        // Check if the provider has availability that matches the event's day and time
+        const isAvailable = provider.availabilities.some(availability =>
+            availability.dayOfWeek === eventDayOfWeek &&
+            availability.startTime <= event.startTime &&
+            availability.endTime >= event.endTime
+        );
+
+        // If the provider is not available, skip to the next one
+        if (!isAvailable) return false;
+
+        // Check if the provider has an overlapping event or the same request._id as the event
+        const hasConflictingEventOrRequest = provider.events.some(existingEvent =>
+            String(existingEvent._id) === String(event._id)  // Compare event IDs as strings
+        );
+
+        // Return true if the provider is available and has no conflicting events or matching request._id
+        return !hasConflictingEventOrRequest;
     });
-  
+
     return availableProviders;
-  }
+}
+
   
   async getEventsBetween(userId: string, date: Date, startTime: string, endTime: string): Promise<Event[]> {
     const user = await this.userModel.findById(userId).exec();

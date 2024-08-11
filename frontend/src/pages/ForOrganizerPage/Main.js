@@ -40,7 +40,7 @@ const MainUser = () => {
 
   return (
     <div>
-      <Navbare userName={userData.name}/>
+      <Navbare userName={userData.name} userAvatar={userData.avatar}/>
       <Sidebar>
         <Container className='mt-4'>
           <Routes>

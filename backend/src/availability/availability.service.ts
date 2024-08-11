@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Availability } from './availability.schema';
@@ -99,8 +99,12 @@ export class AvailabilityService {
 
     return newAvailability;
   }
-  async updateAvailabilityById(providerId: string, availabilityId: string, availabilityDto: any): Promise<Availability> {
-    const provider = await this.providerModel.findById(providerId).exec();
+  async updateAvailabilityById(
+    providerId: string,
+    availabilityId: string,
+    availabilityDto: any
+  ): Promise<Availability> {
+    const provider = await this.providerModel.findById(providerId).populate('events').exec();
   
     if (!provider) {
       throw new NotFoundException('Provider not found');
@@ -113,6 +117,31 @@ export class AvailabilityService {
   
     if (!availability) {
       throw new NotFoundException('Availability not found');
+    }
+  
+    // Convert new or existing start and end times to Date objects
+    const updatedStartTime = new Date(`1970-01-01T${availabilityDto.startTime || availability.startTime}:00Z`);
+    const updatedEndTime = new Date(`1970-01-01T${availabilityDto.endTime || availability.endTime}:00Z`);
+  
+    // Check for overlapping events
+    const overlappingEvent = provider.events.some(event => {
+      const eventDate = new Date(event.date);
+      const eventDayOfWeek = eventDate.toLocaleString('default', { weekday: 'long' }).toUpperCase();
+  
+      // Convert event start and end times to Date objects
+      const eventStartTime = new Date(`1970-01-01T${event.startTime}:00Z`);
+      const eventEndTime = new Date(`1970-01-01T${event.endTime}:00Z`);
+  
+      return (
+        eventDayOfWeek === availabilityDto.dayOfWeek && // Ensure the event is on the same day
+        ((eventStartTime >= updatedStartTime && eventStartTime < updatedEndTime) ||
+          (eventEndTime > updatedStartTime && eventEndTime <= updatedEndTime) ||
+          (eventStartTime <= updatedStartTime && eventEndTime >= updatedEndTime))
+      );
+    });
+  
+    if (overlappingEvent) {
+      throw new ConflictException('Cannot update availability due to an overlapping event.');
     }
   
     // Update existing availability
@@ -128,7 +157,6 @@ export class AvailabilityService {
   
     return availability;
   }
-  
 }
 
 

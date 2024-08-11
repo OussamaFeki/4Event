@@ -114,43 +114,37 @@ export class UserService {
   }
   async updateAvatar(userId: string, providerId: string, file: Express.Multer.File): Promise<User | Provider> {
     let userOrProvider;
-    let entityType;
-
+    
     if (userId) {
       userOrProvider = await this.userModel.findById(userId).exec();
-      entityType = 'user';
     } else if (providerId) {
       userOrProvider = await this.providerModel.findById(providerId).exec();
-      entityType = 'provider';
     }
-
+  
     if (!userOrProvider) {
       throw new NotFoundException('User or Provider not found');
     }
-
-    // Ensure the uploads directory exists
+  
     const uploadsDir = join(__dirname, '..', '..', 'uploads');
     if (!existsSync(uploadsDir)) {
       mkdirSync(uploadsDir);
     }
-
-    // Delete the old avatar if it exists
+  
     if (userOrProvider.avatar) {
-      const oldAvatarPath = join(__dirname, '..', '..', userOrProvider.avatar);
+      const oldAvatarPath = join(uploadsDir, userOrProvider.avatar.split('/uploads/')[1]);
       if (existsSync(oldAvatarPath)) {
         unlinkSync(oldAvatarPath);
       }
     }
-
-    // Generate a unique filename and save the file
+  
     const filename = `${uuidv4()}-${file.originalname}`;
     const filePath = join(uploadsDir, filename);
     writeFileSync(filePath, file.buffer);
-
-    // Update the avatar path in the database
-    userOrProvider.avatar = `uploads/${filename}`;
+    
+    // Save the full URL in the database
+    userOrProvider.avatar = `http://localhost:3001/uploads/${filename}`;
     await userOrProvider.save();
-
+  
     return userOrProvider;
   }
 } 
