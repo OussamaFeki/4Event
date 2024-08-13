@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { Button, Card, Col, Row } from 'react-bootstrap';
+import React, { useEffect, useState, useRef } from 'react';
+import { Button, Card, Col, Row, Overlay, Tooltip } from 'react-bootstrap';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchAvailabilities } from '../../redux/actions/providerAction';
 import AvailabilityModal from '../../components/forProvider/AvailabilityModal';
-import { updateAvailabilityByID } from '../../services/providerServices';
-
+import { deleteAvailability, updateAvailabilityByID } from '../../services/providerServices';
 
 const ManageAvailability = () => {
   const dispatch = useDispatch();
@@ -12,15 +11,27 @@ const ManageAvailability = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [showModal, setShowModal] = useState(false);
   const [selectedAvailability, setSelectedAvailability] = useState(null);
-
+  const [deleteError, setDeleteError] = useState(null);
+  const [showOverlay, setShowOverlay] = useState(false);
+  const target = useRef(null);
   const availabilitiesPerPage = 3;
 
   useEffect(() => {
     dispatch(fetchAvailabilities());
-  }, [dispatch]);
+  }, []);
 
-  const handleDelete = (id) => {
-    // dispatch(deleteAvailability(id));
+  const handleDelete = async (id) => {
+    const token = localStorage.getItem('token');
+    try {
+      await deleteAvailability(token, id);
+      dispatch(fetchAvailabilities());
+      setDeleteError(null);
+      setShowOverlay(false);
+    } catch (error) {
+      setDeleteError(error.response?.data?.message || 'An error occurred while deleting the availability.');
+      setShowOverlay(true);
+      setTimeout(() => setShowOverlay(false), 3000); // Hide overlay after 3 seconds
+    }
   };
 
   const handleUpdate = (availability) => {
@@ -73,9 +84,21 @@ const ManageAvailability = () => {
                 <Button variant="primary" onClick={() => handleUpdate(availability)}>
                   Update
                 </Button>
-                <Button variant="danger" onClick={() => handleDelete(availability._id)} className="ml-2">
+                <Button 
+                  ref={target}
+                  variant="danger" 
+                  onClick={() => handleDelete(availability._id)} 
+                  className="ml-2"
+                >
                   Delete
                 </Button>
+                <Overlay target={target.current} show={showOverlay} placement="top">
+                  {(props) => (
+                    <Tooltip id="overlay-error" {...props}>
+                      {deleteError}
+                    </Tooltip>
+                  )}
+                </Overlay>
               </Card.Body>
             </Card>
           </Col>

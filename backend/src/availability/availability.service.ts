@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Availability } from './availability.schema';
 import { Provider } from '../provider/provider.schema';
+import { startOfWeek, endOfWeek, format } from 'date-fns';
 
 @Injectable()
 export class AvailabilityService {
@@ -156,6 +157,73 @@ export class AvailabilityService {
     await provider.save();
   
     return availability;
+  }
+  async deleteAvailability(providerId: string, availabilityId: string): Promise<void> {
+    const provider = await this.providerModel.findById(providerId).populate('events').exec();
+
+    if (!provider) {
+      throw new NotFoundException('Provider not found');
+    }
+
+    const availability = await this.availabilityModel.findOne({
+      _id: availabilityId,
+      provider: providerId,
+    }).exec();
+
+    if (!availability) {
+      throw new NotFoundException('Availability not found');
+    }
+
+    // Get the start and end of the current week
+    const currentDate = new Date();
+    const weekStart = startOfWeek(currentDate);
+    const weekEnd = endOfWeek(currentDate);
+
+    // Create a mapping from day names to day numbers
+    const dayMapping = {
+      SUNDAY: 0,
+      MONDAY: 1,
+      TUESDAY: 2,
+      WEDNESDAY: 3,
+      THURSDAY: 4,
+      FRIDAY: 5,
+      SATURDAY: 6
+    };
+
+    // Check for overlapping events in the current week
+    const overlappingEvent = provider.events.some(event => {
+      const eventDate = new Date(event.date);
+      const eventDayOfWeek = format(eventDate, 'EEEE').toUpperCase();
+      
+      // Convert availability and event times to Date objects for comparison
+      const availabilityStart = new Date(`1970-01-01T${availability.startTime}:00Z`);
+      const availabilityEnd = new Date(`1970-01-01T${availability.endTime}:00Z`);
+      const eventStart = new Date(`1970-01-01T${event.startTime}:00Z`);
+      const eventEnd = new Date(`1970-01-01T${event.endTime}:00Z`);
+
+      return (
+        eventDate >= weekStart &&
+        eventDate <= weekEnd &&
+        eventDayOfWeek === availability.dayOfWeek &&
+        ((eventStart >= availabilityStart && eventStart < availabilityEnd) ||
+         (eventEnd > availabilityStart && eventEnd <= availabilityEnd) ||
+         (eventStart <= availabilityStart && eventEnd >= availabilityEnd))
+      );
+    });
+
+    if (overlappingEvent) {
+      throw new ConflictException('Cannot delete availability due to an overlapping event in the current week.');
+    }
+
+    // Delete the availability
+    await this.availabilityModel.findByIdAndDelete(availabilityId).exec();
+
+    // Remove the availability from the provider's availabilities array
+    provider.availabilities = provider.availabilities.filter(
+      avail => avail.toString() !== availabilityId
+    );
+    provider.updatedAt = new Date();
+    await provider.save();
   }
 }
 

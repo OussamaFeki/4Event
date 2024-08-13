@@ -1,0 +1,24 @@
+.custom-carousel {
+    width: 100vw;
+    height: 60vh; /* Keeping your adjusted height */
+    overflow: hidden;
+    margin: 0;
+    position: relative;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+  }
+  
+  .custom-carousel .carousel-inner,
+  .custom-carousel .carousel-item {
+    height: 100%;
+    width: 100%;
+  }
+  
+  .custom-carousel .carousel-item img {
+    object-fit: cover;
+    object-position: center;
+    height: 100%;
+    width: 100%;
+  }

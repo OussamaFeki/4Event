@@ -1,9 +1,12 @@
 import React from 'react'
+import CarouselImage from '../components/forHomepage/CarouselImages'
+import Cards from '../components/forHomepage/Cards'
 
 const First = () => {
   return (
     <div className='mt-4'>
-     First page  
+     <CarouselImage/>
+     <Cards/>
     </div>
   )
 }

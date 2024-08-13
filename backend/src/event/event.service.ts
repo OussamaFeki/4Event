@@ -247,18 +247,17 @@ export class EventService {
     }));
   }
  
+  
   async getEventAvailabilityPercentage(providerId: string): Promise<number> {
-    const provider = await this.providerModel.findById(providerId).populate('availabilities events').exec();
+    const provider = await this.providerModel.findById(providerId)
+      .populate('availabilities events')
+      .exec();
   
     if (!provider) {
       throw new NotFoundException('Provider not found');
     }
   
     const { availabilities, events } = provider;
-  
-    if (events.length === 0) {
-      return 0; // If no events, return 0%
-    }
   
     // Get the start and end of the current week
     const currentDate = new Date();
@@ -278,43 +277,29 @@ export class EventService {
     // Calculate total event duration in minutes
     let totalEventDuration = 0;
     eventsInCurrentWeek.forEach(event => {
-      const startTime = new Date(`${event.date.toISOString().split('T')[0]}T${event.startTime}`);
-      const endTime = new Date(`${event.date.toISOString().split('T')[0]}T${event.endTime}`);
+      const eventDate = new Date(event.date);
+      const startTime = new Date(`${eventDate.toISOString().split('T')[0]}T${event.startTime}`);
+      const endTime = new Date(`${eventDate.toISOString().split('T')[0]}T${event.endTime}`);
       totalEventDuration += differenceInMinutes(endTime, startTime);
     });
-  
     // Calculate total available duration in minutes for the current week
-    const dayOfWeekMap = [
-      DayOfWeek.SUNDAY,
-      DayOfWeek.MONDAY,
-      DayOfWeek.TUESDAY,
-      DayOfWeek.WEDNESDAY,
-      DayOfWeek.THURSDAY,
-      DayOfWeek.FRIDAY,
-      DayOfWeek.SATURDAY
-    ];
-  
     let totalAvailableDuration = 0;
-    for (let day = 0; day < 7; day++) {
-      const currentDay = addDays(startOfCurrentWeek, day);
-      const dayOfWeekEnum = dayOfWeekMap[currentDay.getDay()];
-  
-      const dayAvailability = availabilities.filter(slot => slot.dayOfWeek === dayOfWeekEnum);
-  
-      dayAvailability.forEach(slot => {
-        const startTime = new Date(`${currentDay.toISOString().split('T')[0]}T${slot.startTime}`);
-        const endTime = new Date(`${currentDay.toISOString().split('T')[0]}T${slot.endTime}`);
-        totalAvailableDuration += differenceInMinutes(endTime, startTime);
-      });
-    }
+    
+     
+    availabilities.forEach(slot => {
+      const startTime = new Date(`1970-01-01T${slot.startTime}`);
+      const endTime = new Date(`1970-01-01T${slot.endTime}`);
+      totalAvailableDuration += differenceInMinutes(endTime, startTime);
+    });
+    
   
     if (totalAvailableDuration === 0) {
       return 0; // If no available time, return 0%
     }
   
-    return (totalEventDuration / totalAvailableDuration) * 100;
+    const percentage = (totalEventDuration / totalAvailableDuration) * 100;
+    return percentage;
   }
- 
 
   // New method to get all requests for a provider
   async getProviderRequests(providerId: string): Promise<Event[]> {
@@ -459,6 +444,20 @@ export class EventService {
       DayOfWeek.SATURDAY
     ];
   
+    const currentDate = new Date();
+    const currentDayOfWeek = dayOfWeekMap[currentDate.getDay()];
+    
+    const currentDayAvailabilities = availabilities.filter(a => a.dayOfWeek === currentDayOfWeek);
+    const currentDayEvents = events.filter(e => {
+      const eventDate = new Date(e.date);
+      return eventDate.toDateString() === currentDate.toDateString();
+    });
+  
+    if (currentDayAvailabilities.length === 0 && currentDayEvents.length === 0) {
+      // If there are no availabilities or events for the current day, set pause time to 100%
+      return { availableTime: 0, pauseTime: 1440, eventTime: 0 };
+    }
+  
     for (const availability of availabilities) {
       const startAvailability = new Date(`1970-01-01T${availability.startTime}Z`);
       const endAvailability = new Date(`1970-01-01T${availability.endTime}Z`);
@@ -491,6 +490,9 @@ export class EventService {
         if (previousEndTime < endAvailability) {
           pauseTime += differenceInMinutes(endAvailability, previousEndTime);
         }
+      } else {
+        // If there are no events for this availability, count it all as pause time
+        pauseTime += totalAvailabilityMinutes;
       }
     }
   

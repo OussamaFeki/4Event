@@ -1,7 +1,7 @@
 // src/features/provider/providerActions.js
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { getProviderData, sendRequest } from '../../services/organiserServices';
-import { addAvailability, getAvailabilities, getSelfData } from '../../services/providerServices';
+import { addAvailability, getAvailabilities, getSelfData, getServices } from '../../services/providerServices';
 
 // Thunk to fetch provider data
 export const fetchProviderData = createAsyncThunk(
@@ -72,6 +72,20 @@ export const fetchAvailabilities = createAsyncThunk(
     try {
       const token = localStorage.getItem('token');
       const response = await getAvailabilities(token);
+      return response;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response ? error.response.data : error.message);
+    }
+  }
+);
+
+// Thunk to fetch provider services
+export const fetchServices = createAsyncThunk(
+  'provider/fetchServices',
+  async (_, thunkAPI) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await getServices(token); // Call the service
       return response;
     } catch (error) {
       return thunkAPI.rejectWithValue(error.response ? error.response.data : error.message);

@@ -153,6 +153,20 @@ export const getAvailabilities = async (token) => {
   }
 
 };
+ export const getServices= async (token)=>{
+  try{
+    const response=await axios.get(`${API_BASE_URL}/service/services`, {
+      headers: {
+        Authorization: `Bearer ${token}`, // Assuming you're using JWT for auth
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching availabilities:', error);
+    throw error;
+  }
+}
 export const getDoghnuts = async (token) => {
   try {
     const response = await axios.get(`${API_BASE_URL}/events/provider/Doghnuts`, {
@@ -199,6 +213,66 @@ export const updateAvailabilityByID = async (token, id, availabilityDto) => {
     return response.data;
   } catch (error) {
     console.error('Error updating availability by ID:', error);
+    throw error;
+  }
+};
+export const createService = async (token, serviceDto) => {
+  try {
+    const response = await axios.post(`${API_BASE_URL}/service`, serviceDto, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error('Error creating service:', error);
+    throw error;
+  }
+};
+// Function to update an existing service
+export const updateService = async (token, serviceId, serviceDto) => {
+  try {
+    const response = await axios.put(`${API_BASE_URL}/service/${serviceId}`, serviceDto, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error('Error updating service:', error);
+    throw error;
+  }
+};
+// Function to delete a service by ID
+export const deleteService = async (token, serviceId) => {
+  try {
+    const response = await axios.delete(`${API_BASE_URL}/service/${serviceId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting service:', error);
+    throw error;
+  }
+  
+};
+// Function to delete a service by ID
+export const deleteAvailability = async (token, serviceId) => {
+  try {
+    const response = await axios.delete(`${API_BASE_URL}/availability/${serviceId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting service:', error);
     throw error;
   }
 };

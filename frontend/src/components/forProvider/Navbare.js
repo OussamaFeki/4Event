@@ -8,7 +8,6 @@ import { useAuth } from '../../guard/AuthContext';
 
 const Navbare = ({ userName, userAvatar }) => {
   const { logout } = useAuth();
-  console.log(userAvatar)
   const navigate = useNavigate();
 
   const handleLogout = () => {
