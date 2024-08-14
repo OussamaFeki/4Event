@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Alert, Row, Col, Card, ListGroup, Button } from 'react-bootstrap';
+import { Container, Alert, Row, Col, Card, ListGroup, Button, Image } from 'react-bootstrap';
 import { Calendar } from 'react-bootstrap-icons';
 import { useNavigate } from 'react-router-dom';
 import { getProviders } from '../../services/organiserServices';
@@ -36,12 +36,10 @@ const Providers = () => {
     return <Alert variant="danger">{error}</Alert>;
   }
 
-  // Calculate the indexes for slicing the providers array
   const indexOfLastProvider = currentPage * providersPerPage;
   const indexOfFirstProvider = indexOfLastProvider - providersPerPage;
   const currentProviders = providers.slice(indexOfFirstProvider, indexOfLastProvider);
 
-  // Calculate the total number of pages
   const totalPages = Math.ceil(providers.length / providersPerPage);
 
   return (
@@ -57,12 +55,21 @@ const Providers = () => {
                 <Card>
                   <Card.Body>
                     <div className="d-flex justify-content-between align-items-start">
-                      <div>
-                        <Card.Title>{provider.name || 'Unnamed Provider'}</Card.Title>
-                        <Card.Text>
-                          <strong>Email:</strong> {provider.email}<br />
-                          <strong>Price:</strong> ${provider.price}
-                        </Card.Text>
+                      <div className="d-flex align-items-center">
+                        <Image 
+                          src={provider.avatar || 'https://via.placeholder.com/100'} 
+                          roundedCircle 
+                          width={100} 
+                          height={100} 
+                          className="me-3"
+                        />
+                        <div>
+                          <Card.Title>{provider.name || 'Unnamed Provider'}</Card.Title>
+                          <Card.Text>
+                            <strong>Email:</strong> {provider.email}<br />
+                            <strong>Price:</strong> ${provider.price}
+                          </Card.Text>
+                        </div>
                       </div>
                       <Button variant="outline-primary" onClick={() => handleBookClick(provider)}>
                         <Calendar size={20} /> Book

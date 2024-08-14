@@ -1,15 +1,16 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { UserService } from './user.service';
-import { UserController } from './user.controller';
-import { User, UserSchema } from './user.schema';
-import { Provider, ProviderSchema } from 'src/provider/provider.schema';
+import { MessageService } from './message.service';
+import { MessageController } from './message.controller';
+import { Message, MessageSchema } from './message.schema';
+import { Client, ClientSchema } from 'src/client/client.schema';
+import { User, UserSchema } from 'src/user/user.schema';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: Provider.name, schema: ProviderSchema }]),
+    MongooseModule.forFeature([{ name: Message.name, schema: MessageSchema }]),
+    MongooseModule.forFeature([{ name: Client.name, schema: ClientSchema }]),
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -21,7 +22,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     }),
     ConfigModule,
   ],
-  providers: [UserService],
-  controllers: [UserController],
+  providers: [MessageService],
+  controllers: [MessageController],
 })
-export class UserModule {}
+export class MessageModule {}

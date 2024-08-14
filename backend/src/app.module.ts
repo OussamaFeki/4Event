@@ -14,6 +14,10 @@ import { PaymentModule } from './payment/payment.module';
 import { ContractModule } from './contract/contract.module';
 import { NotificationModule } from './notification/notification.module';
 
+import { MessageModule } from './message/message.module';
+import { ClientModule } from './client/client.module';
+
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -38,6 +42,8 @@ import { NotificationModule } from './notification/notification.module';
     PaymentModule,
     ContractModule,
     NotificationModule,
+    ClientModule,
+    MessageModule,
   ],
   controllers: [AppController],
   providers: [AppService],

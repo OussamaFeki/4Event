@@ -4,7 +4,7 @@ import Container from 'react-bootstrap/Container';
 import Form from 'react-bootstrap/Form';
 import Navbar from 'react-bootstrap/Navbar';
 import Nav from 'react-bootstrap/Nav';
-import { useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { PersonCircle, Gear, InfoCircle, BoxArrowRight } from 'react-bootstrap-icons';
 import './Navbare.css';
 import logo from '../../Logos/4Event.png';
@@ -51,7 +51,7 @@ const Navbare = ({ userName, userAvatar }) => {
               }
               id="navbarScrollingDropdown"
             >
-              <NavDropdown.Item href="/settings">
+              <NavDropdown.Item as={NavLink} to="/organizer/settings">
                 <Gear className="me-2" /> Settings
               </NavDropdown.Item>
               <NavDropdown.Item href="/info">
