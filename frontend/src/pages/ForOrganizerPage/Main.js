@@ -9,6 +9,7 @@ import Events from './Events';
 import Providers from './Providers';
 import ProviderCalender from './ProviderCalender';  // Import the ProviderCalender component
 import Setting from '../both/Setting';
+import Messages from './Messages';
 
 const MainUser = () => {
   const [userData, setUserData] = useState(null);
@@ -50,6 +51,7 @@ const MainUser = () => {
             <Route path='/providers' element={<Providers/>}/>
             <Route path='/provider-calendar' element={<ProviderCalender userId={userData._id}/>}/>
             <Route path='/settings' element={<Setting/>}/>  
+            <Route path='/messages' element={<Messages/>}/>
           </Routes>
         </Container>
       </Sidebar>

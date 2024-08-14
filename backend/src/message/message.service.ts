@@ -9,7 +9,7 @@ export class MessageService {
     @InjectModel(Message.name) private messageModel: Model<Message>,
   ) {}
 
-  async createMessage(senderId: string, receiverId: string, content: string): Promise<Message> {
+  async createMessage(senderId: any, receiverId: string, content: string): Promise<Message> {
     const newMessage = new this.messageModel({
       sender: senderId,
       receiver: receiverId,

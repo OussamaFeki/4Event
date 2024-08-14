@@ -24,6 +24,13 @@ const ClientModal = ({ show, onHide, userId }) => {
       // Include userId in the client data
       const dataToSend = { ...clientData, userId };
       await createClient(dataToSend);
+      // Reset the form after successful submission
+      setClientData({
+        name: '',
+        email: '',
+        phone: '',
+        message: '',
+      });
       onHide(); // Close the modal after successful submission
     } catch (error) {
       console.error('Failed to create client:', error);
@@ -86,7 +93,7 @@ const ClientModal = ({ show, onHide, userId }) => {
           </Form.Group>
 
           <Button variant="primary" type="submit">
-            Create Client
+            Send the Message
           </Button>
         </Form>
       </Modal.Body>

@@ -136,3 +136,19 @@ export const getProviderData = async (token, id) => {
     throw error;
   }
 };
+export const getMessages = async (token) => {
+  try {
+    const response = await axios.get(
+      `${API_BASE_URL}/message/my-messages`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching provider data:', error);
+    throw error;
+  }
+}

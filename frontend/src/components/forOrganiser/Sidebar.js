@@ -18,6 +18,7 @@ const Sidebar = ({ children }) => {
               <Nav.Link as={NavLink} to="/organizer"><Speedometer2 className="me-4" />Dashboard</Nav.Link>
               <Nav.Link as={NavLink} to="/organizer/event"><Calendar3 className="me-4" />My Events</Nav.Link>
               <Nav.Link as={NavLink} to="/organizer/providers"><People className="me-4" />Providers</Nav.Link>
+              <Nav.Link as={NavLink} to="/organizer/messages"><People className="me-4" />Messages</Nav.Link>
             </Nav>
           </Navbar.Collapse>
         </Container>

@@ -15,27 +15,45 @@ export class ClientService {
     private readonly messageService: MessageService, // Inject the MessageService
   ) {}
 
-  async createClient(createClientDto: any, userId: any, message: any): Promise<Client> {
+  async createClient(createClientDto: any, userId: string, message: string): Promise<Client> {
     const { email, name, phone } = createClientDto;
-
+  
     // Check if a client with the same email already exists
     const existingClient = await this.clientModel.findOne({ email }).exec();
-
+  
     if (existingClient) {
       // Create a message if the client already exists
-      const messageDto: any = {
-        sender: existingClient._id,
-      };
-
-      await this.messageService.createMessage(messageDto.sender, userId, message);
-
-      throw new ConflictException('Client with this email already exists. A message has been sent.');
+      const newMessage = await this.messageService.createMessage(existingClient._id, userId, message);
+  
+      // Add the new message to the client's messages array
+      existingClient.messages.push(newMessage);
+      await existingClient.save();
+  
+      // Return the existing client after adding the message
+      return existingClient;
     }
-
+  
     // Create a new client if it doesn't exist
-    const newClient = new this.clientModel(createClientDto);
-    return await newClient.save();
+    const newClient = new this.clientModel({
+      name,
+      email,
+      phone,
+      messages: [],
+    });
+  
+    // Save the new client
+    const savedClient = await newClient.save();
+  
+    // Create a message for the new client
+    const newMessage = await this.messageService.createMessage(savedClient._id, userId, message);
+  
+    // Add the new message to the client's messages array
+    savedClient.messages.push(newMessage);
+    await savedClient.save();
+  
+    return savedClient;
   }
+  
 
   async getAllUsers(): Promise<User[]> {
     return this.userModel.find()
