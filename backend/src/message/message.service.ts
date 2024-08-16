@@ -19,7 +19,7 @@ export class MessageService {
   }
 
   async findMessagesForReceiver(receiverId: string): Promise<Message[]> {
-    return this.messageModel.find({ receiver: receiverId }) .populate('sender', 'name email').exec();
+    return this.messageModel.find({ receiver: receiverId }) .populate('sender', 'name email phone').exec();
   }
 
   async deleteMessage(id: string): Promise<void> {
