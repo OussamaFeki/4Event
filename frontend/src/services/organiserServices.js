@@ -151,4 +151,23 @@ export const getMessages = async (token) => {
     console.error('Error fetching provider data:', error);
     throw error;
   }
-}
+  
+};
+export const createContract = async (token, eventId, providerId, contractData) => {
+  try {
+    const response = await axios.post(
+      `${API_BASE_URL}/contracts`,
+      { eventId, providerId, ...contractData },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error creating contract:', error);
+    throw error;
+  }
+};

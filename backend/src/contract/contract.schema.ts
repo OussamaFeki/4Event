@@ -7,9 +7,6 @@ import { Provider } from '../provider/provider.schema'; // Adjust the import as 
 
 @Schema()
 export class Contract extends Document {
-  @Prop({ required: true, unique: true })
-  contractID: string;
-
   @Prop({ type: Event, required: true })
   event: Event;
 
@@ -18,6 +15,8 @@ export class Contract extends Document {
 
   @Prop({ required: true })
   terms: string;
+  @Prop({ required: true })
+  price: number;
 
   @Prop({ default: Date.now })
   createdAt: Date;
