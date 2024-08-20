@@ -1,14 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Modal, Button } from 'react-bootstrap';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch} from 'react-redux';
 import { sendProviderRequest } from '../redux/actions/providerAction';
 import ContractModal from './forOrganiser/ContractModal';
 
-const ConfirmationModal = ({ show, handleClose, token, eventId, providerId, deleteCard }) => {
+const ConfirmationModal = ({ show, handleClose, token, eventId, providerId, deleteCard,deleteProvider }) => {
   const dispatch = useDispatch();
-  const { provider, loading, error } = useSelector((state) => state.provider);
   const [showContractModal, setShowContractModal] = useState(false);
-  
+
   const eventIdRef = useRef(eventId);
   const providerIdRef = useRef(providerId);
 
@@ -17,8 +16,6 @@ const ConfirmationModal = ({ show, handleClose, token, eventId, providerId, dele
     if (providerId) providerIdRef.current = providerId;
   }, [eventId, providerId]);
 
-  console.log('ConfirmationModal props:', { show, token, eventId: eventIdRef.current, providerId: providerIdRef.current });
-
   const handleConfirm = async () => {
     if (!eventIdRef.current || !providerIdRef.current) {
       console.error('eventId or providerId is undefined', { eventId: eventIdRef.current, providerId: providerIdRef.current });
@@ -26,12 +23,14 @@ const ConfirmationModal = ({ show, handleClose, token, eventId, providerId, dele
     }
 
     try {
-      console.log('Sending provider request with:', { eventId: eventIdRef.current, providerId: providerIdRef.current });
       await dispatch(sendProviderRequest({ eventId: eventIdRef.current, providerId: providerIdRef.current })).unwrap();
+      setShowContractModal(true);// Show the contract modal
       handleClose();
-      setShowContractModal(true);
       if (deleteCard) {
         deleteCard(eventIdRef.current);
+      }
+      if(deleteProvider){
+        deleteProvider(providerIdRef.current)
       }
     } catch (err) {
       console.error('Error sending request:', err);

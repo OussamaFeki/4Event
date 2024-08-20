@@ -15,6 +15,7 @@ import { AuthGuard } from '../shared/auth/auth.gard'; // Assuming this is the co
 import { User, UserSchema } from 'src/user/user.schema';
 import { Availability, AvailabilitySchema } from 'src/availability/availability.schema';
 import { AvailabilityModule } from 'src/availability/availability.module';
+import { Contract, ContractSchema } from 'src/contract/contract.schema';
 
 @Module({
   imports: [
@@ -22,7 +23,8 @@ import { AvailabilityModule } from 'src/availability/availability.module';
       { name: Event.name, schema: EventSchema }, // Using Event.name for consistency
       { name: Provider.name, schema: ProviderSchema },
       {name:User.name, schema:UserSchema},
-      {name:Availability.name,schema:AvailabilitySchema}
+      {name:Availability.name,schema:AvailabilitySchema},
+      {name:Contract.name,schema:ContractSchema}
     ]),
     ProviderModule,
     PaymentModule,

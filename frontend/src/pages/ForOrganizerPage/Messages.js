@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Container, Form, Pagination, InputGroup, DropdownButton, Dropdown, Button, Row, Col } from 'react-bootstrap';
+import { Card, Container, Form, Pagination, InputGroup, DropdownButton, Dropdown, Button, Row, Col, Alert } from 'react-bootstrap';
 import { getMessages } from '../../services/organiserServices';
 import SendModal from '../../components/forOrganiser/SendModal';
-
 
 const Messages = () => {
   const [messages, setMessages] = useState([]);
@@ -82,38 +81,42 @@ const Messages = () => {
         />
       </InputGroup>
 
-      {currentMessages.map((message, index) => (
-        <Card key={index} className="mb-3" style={{ width: '100%' }}>
-          <Card.Body>
-            <Row>
-              <Col md={8}>
-                <Card.Title>{message.sender.name}</Card.Title>
-                <Card.Subtitle className="mb-2 text-muted">
-                  <strong>Email:</strong> {message.sender.email}
-                </Card.Subtitle>
-                <Card.Subtitle className="mb-2 text-muted">
-                  <strong>Phone Number:</strong> {message.sender.phone}
-                </Card.Subtitle>
-                <Card.Text>
-                  <strong>Message:</strong> {message.content}
-                </Card.Text>
-              </Col>
-              <Col md={4} className="text-right">
-                <Button 
-                  variant="primary" 
-                  className="mr-2" 
-                  onClick={() => handleOpenSendModal(message.sender.id, message.sender.email)}
-                >
-                  Send Email
-                </Button>
-                <Button variant="secondary" onClick={() => handleSendSMS(message.sender.phone)}>
-                  Send SMS
-                </Button>
-              </Col>
-            </Row>
-          </Card.Body>
-        </Card>
-      ))}
+      {currentMessages.length === 0 ? (
+        <Alert variant="info">There are no messages right now.</Alert>
+      ) : (
+        currentMessages.map((message, index) => (
+          <Card key={index} className="mb-3" style={{ width: '100%' }}>
+            <Card.Body>
+              <Row>
+                <Col md={8}>
+                  <Card.Title>{message.sender.name}</Card.Title>
+                  <Card.Subtitle className="mb-2 text-muted">
+                    <strong>Email:</strong> {message.sender.email}
+                  </Card.Subtitle>
+                  <Card.Subtitle className="mb-2 text-muted">
+                    <strong>Phone Number:</strong> {message.sender.phone}
+                  </Card.Subtitle>
+                  <Card.Text>
+                    <strong>Message:</strong> {message.content}
+                  </Card.Text>
+                </Col>
+                <Col md={4} className="text-right">
+                  <Button
+                    variant="primary"
+                    className="mr-2"
+                    onClick={() => handleOpenSendModal(message.sender.id, message.sender.email)}
+                  >
+                    Send Email
+                  </Button>
+                  <Button variant="secondary" onClick={() => handleSendSMS(message.sender.phone)}>
+                    Send SMS
+                  </Button>
+                </Col>
+              </Row>
+            </Card.Body>
+          </Card>
+        ))
+      )}
 
       <Pagination>
         {[...Array(totalPages).keys()].map(number => (

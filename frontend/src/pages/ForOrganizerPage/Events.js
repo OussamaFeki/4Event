@@ -3,6 +3,7 @@ import { createEvent, deleteEvent, getEvents } from '../../services/organiserSer
 import { Table, Button, Alert, Modal, Form, InputGroup, Dropdown } from 'react-bootstrap';
 import { XCircle, InfoCircle, PlusCircle, Search } from 'react-bootstrap-icons';
 import ProviderModal from '../../components/forOrganiser/ProviderModal';
+import EventInfo from '../../components/forOrganiser/EventInfo';
 
 const Events = () => {
   const [data, setData] = useState([]);
@@ -22,11 +23,13 @@ const Events = () => {
   const [searchFilter, setSearchFilter] = useState('name');
   const [showProviderModal, setShowProviderModal] = useState(false);
   const [selectedEventId, setSelectedEventId] = useState(null);
-  const [token, setToken] = useState(null); // Add token state
+  const [token, setToken] = useState(null);
+  const [showEventInfo, setShowEventInfo] = useState(false); // New state for EventInfo modal
+  const [selectedEvent, setSelectedEvent] = useState(null); // New state for selected event
 
   useEffect(() => {
     const storedToken = localStorage.getItem('token');
-    setToken(storedToken); // Set the token
+    setToken(storedToken); 
     fetchData(storedToken);
   }, []);
 
@@ -37,6 +40,7 @@ const Events = () => {
   const fetchData = async (token) => {
     try {
       const events = await getEvents(token);
+      console.log(events);
       setData(events);
     } catch (err) {
       setError(err);
@@ -49,7 +53,7 @@ const Events = () => {
     try {
       await deleteEvent(token, eventId);
       console.log('Event deleted successfully');
-      fetchData(token); // Refresh the events list
+      fetchData(token); 
     } catch (err) {
       console.error('Error deleting event:', err);
       setError(err);
@@ -108,8 +112,18 @@ const Events = () => {
     setSelectedEventId(null);
   };
 
+  const handleShowEventInfo = (event) => {
+    setSelectedEvent(event); // Set the selected event
+    setShowEventInfo(true);  // Show the EventInfo modal
+  };
+
+  const handleCloseEventInfo = () => {
+    setShowEventInfo(false); // Close the EventInfo modal
+    setSelectedEvent(null);  // Clear the selected event
+  };
+
   if (loading) {
-    return <div>Loading...</div>;
+    return <div>Loading..</div>;
   }
 
   if (error) {
@@ -171,7 +185,7 @@ const Events = () => {
                   <Button variant="danger" size="sm" className="me-2" onClick={() => handleDeleteEvent(event._id)}>
                     <XCircle size={16} /> delete
                   </Button>
-                  <Button variant="info" size="sm" className="me-2">
+                  <Button variant="info" size="sm" className="me-2" onClick={() => handleShowEventInfo(event)}>
                     <InfoCircle size={16} /> More Info
                   </Button>
                   <Button variant="success" size="sm" className="me-2" onClick={() => handleSendToProvider(event._id)}>
@@ -222,6 +236,11 @@ const Events = () => {
         handleClose={handleCloseProviderModal}
         eventId={selectedEventId}
         token={token}
+      />
+      <EventInfo 
+        show={showEventInfo}
+        onHide={handleCloseEventInfo}
+        event={selectedEvent}
       />
     </div>
   );

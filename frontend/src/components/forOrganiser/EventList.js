@@ -53,15 +53,6 @@ const EventList = ({ slotEvents, providerId }) => {
     });
   };
 
-  const handleConfirmRequest = (eventId) => {
-    setSentRequests((prev) => ({
-      ...prev,
-      [eventId]: true
-    }));
-    handleDeleteEvent(eventId); // Delete event after confirming request
-    handleCloseConfirmationModal();
-  };
-
   return (
     <Container>
       {events.length > 0 ? (
@@ -90,7 +81,6 @@ const EventList = ({ slotEvents, providerId }) => {
                   token={token}
                   eventId={event._id}
                   providerId={providerId}
-                  onConfirm={() => handleConfirmRequest(event._id)}
                   deleteCard={handleDeleteEvent}
                 />
               </Col>

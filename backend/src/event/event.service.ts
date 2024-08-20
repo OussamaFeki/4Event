@@ -7,6 +7,7 @@ import { User } from '../user/user.schema';
 import { Availability } from 'src/availability/availability.schema';
 import { DayOfWeek } from 'src/shared/enums/day-of-week.enum';
 import { startOfWeek, endOfWeek,addMinutes, addDays, differenceInMinutes } from 'date-fns';
+import { Contract } from 'src/contract/contract.schema';
 @Injectable()
 export class EventService {
   constructor(
@@ -14,6 +15,7 @@ export class EventService {
     @InjectModel(Provider.name) private providerModel: Model<Provider>,
     @InjectModel(User.name) private userModel: Model<User>,
     @InjectModel(Availability.name) private availabilityModel: Model<Availability>,
+    @InjectModel(Contract.name) private contractModel: Model<Availability>,
   ) {}
 
   async acceptEvent(providerId: string, eventId: string): Promise<void> {
@@ -21,12 +23,12 @@ export class EventService {
     if (!event) {
       throw new NotFoundException('Event not found');
     }
-
+  
     const provider = await this.providerModel.findById(providerId).exec();
     if (!provider) {
       throw new NotFoundException('Provider not found');
     }
-
+  
     // Check if the provider already has events that overlap in time with the new event
     const overlappingEvent = await this.eventModel.findOne({
       _id: { $in: provider.events }, // Find events where provider is already participating
@@ -38,54 +40,77 @@ export class EventService {
         { startTime: { $lte: event.startTime }, endTime: { $gte: event.endTime } }, // New event completely within existing event
       ],
     }).exec();
-
+  
     if (overlappingEvent) {
       throw new BadRequestException('Provider already has an event overlapping in time');
     }
-
+  
     // Add the provider to the `providers` array of the event
     if (!event.providers.includes(provider)) {
       event.providers.push(provider);
       await event.save();
     }
-
+  
     // Remove the event from the `requests` array of the provider
     await this.providerModel.findByIdAndUpdate(
       providerId,
       { $pull: { requests: eventId } },
       { new: true }
     ).exec();
-
+  
     // Add the event to the `events` array of the provider
     if (!provider.events.includes(event)) {
       provider.events.push(event);
       await provider.save();
     }
-
-       // Remove overlapping requests for the same date from the provider's requests array
-       await this.providerModel.findByIdAndUpdate(
-        providerId,
-        {
-          $pull: {
-            requests: {
-              $in: await this.eventModel.find({
-                _id: { $in: provider.requests }, // Find requests in the provider's requests array
-                date: event.date, // Ensure events are on the same date
-                $or: [
-                  // Check overlapping conditions
-                  { startTime: { $gte: event.startTime, $lt: event.endTime } }, // Request starts during accepted event
-                  { endTime: { $gt: event.startTime, $lte: event.endTime } }, // Request ends during accepted event
-                  { startTime: { $lte: event.startTime }, endTime: { $gte: event.endTime } }, // Request completely within accepted event
-                ],
-              }).select('_id')
-            },
+  
+    // Find the existing contract between the event and the provider
+    const contract = await this.contractModel.findOne({
+      event: event,
+      provider: provider,
+    }).exec(); 
+    console.log(contract);
+    if (!contract) {
+      throw new NotFoundException('Contract not found');
+    }else{
+      if (!event.contracts.includes(contract.id)) {
+        event.contracts.push(contract.id);
+        await event.save();
+      }
+    }
+  
+    // Add the found contract to the `contracts` array of the event if it's not already added
+   
+  
+    // Remove overlapping requests for the same date from the provider's requests array
+    await this.providerModel.findByIdAndUpdate(
+      providerId,
+      {
+        $pull: {
+          requests: {
+            $in: await this.eventModel.find({
+              _id: { $in: provider.requests }, // Find requests in the provider's requests array
+              date: event.date, // Ensure events are on the same date
+              $or: [
+                // Check overlapping conditions
+                { startTime: { $gte: event.startTime, $lt: event.endTime } }, // Request starts during accepted event
+                { endTime: { $gt: event.startTime, $lte: event.endTime } }, // Request ends during accepted event
+                { startTime: { $lte: event.startTime }, endTime: { $gte: event.endTime } }, // Request completely within accepted event
+              ],
+            }).select('_id')
           },
         },
-        { new: true }
-      ).exec();
-    
+      },
+      { new: true }
+    ).exec();
+    // Remove the provider from the `requests` array of the Event
+     await this.eventModel.findByIdAndUpdate(
+      eventId,
+      { $pull: { requests: providerId } },
+      { new: true }
+    ).exec();
   }
-
+  
   async refuseEvent(providerId: string, eventId: string): Promise<void> {
     const event = await this.eventModel.findById(eventId).exec();
     if (!event) {
@@ -115,6 +140,11 @@ export class EventService {
       { $pull: { requests: providerId } },
       { new: true }
     ).exec();
+    // Delete the contract associated with this provider and event
+    await this.contractModel.findOneAndDelete({
+      provider: providerId,
+      event: eventId,
+    }).exec();
   }
   async sendRequest(userId: string, providerId: string, eventId: string): Promise<void> {
     const event = await this.eventModel.findById(eventId).exec();
@@ -302,14 +332,24 @@ export class EventService {
   }
 
   // New method to get all requests for a provider
-  async getProviderRequests(providerId: string): Promise<Event[]> {
-    const provider = await this.providerModel.findById(providerId).populate('requests').exec();
+async getProviderRequests(providerId: string): Promise<Event[]> {
+  const provider = await this.providerModel
+    .findById(providerId)
+    .populate({
+      path: 'requests',
+      populate: {
+        path: 'organizer',
+        model: 'User', // Assuming the organizer field references the User model
+      },
+    })
+    .exec();
 
-    if (!provider) {
-      throw new NotFoundException('Provider not found');
-    }
-    return provider.requests;
+  if (!provider) {
+    throw new NotFoundException('Provider not found');
   }
+  return provider.requests;
+}
+
   // New method to get total users, sum of prices, and total events for a provider
   async getProviderStats(providerId: string): Promise<{ totalUsers: number, totalPrices: number, totalEvents: number }> {
     const provider = await this.providerModel.findById(providerId).populate('events requests').exec();
@@ -337,7 +377,7 @@ export class EventService {
     return { totalUsers, totalPrices, totalEvents };
   }
   async getEventsOfOrganiser(userId):Promise<Event[]>{
-    const events=await this.eventModel.find({organizer:userId}).exec();
+    const events=await this.eventModel.find({organizer:userId}).populate('requests providers contracts').exec();
     if(!events){
       throw new NotFoundException('there is no event');
     }
@@ -373,10 +413,9 @@ export class EventService {
 
     // Get the day of the week for the event date in uppercase (e.g., "SUNDAY")
     const eventDayOfWeek = event.date.toLocaleString('default', { weekday: 'long' }).toUpperCase();
-    console.log(eventDayOfWeek);
 
-    // Find all providers with their availabilities and events
-    const providers = await this.providerModel.find().populate('availabilities events').exec();
+    // Find all providers with their availabilities, events, and requests
+    const providers = await this.providerModel.find().populate('availabilities events requests').exec();
 
     // Filter providers to find those available for the event
     const availableProviders = providers.filter(provider => {
@@ -390,17 +429,23 @@ export class EventService {
         // If the provider is not available, skip to the next one
         if (!isAvailable) return false;
 
-        // Check if the provider has an overlapping event or the same request._id as the event
-        const hasConflictingEventOrRequest = provider.events.some(existingEvent =>
+        // Check if the provider has an overlapping event
+        const hasConflictingEvent = provider.events.some(existingEvent =>
             String(existingEvent._id) === String(event._id)  // Compare event IDs as strings
         );
 
-        // Return true if the provider is available and has no conflicting events or matching request._id
-        return !hasConflictingEventOrRequest;
+        // Check if the provider already has a request for the same event
+        const hasExistingRequest = provider.requests.some(request =>
+            String(request._id) === String(eventId)  // Compare request event IDs as strings
+        );
+
+        // Return true if the provider is available, has no conflicting events, and no existing request for the same event
+        return !hasConflictingEvent && !hasExistingRequest;
     });
 
     return availableProviders;
 }
+
 
   
   async getEventsBetween(userId: string, date: Date, startTime: string, endTime: string): Promise<Event[]> {

@@ -5,6 +5,7 @@ import { Document, Schema as MongooseSchema } from 'mongoose';
 import { User } from '../user/user.schema';
 import { Provider } from '../provider/provider.schema';
 import { Payment } from '../payment/payment.schema';
+import { Contract } from 'src/contract/contract.schema';
 
 @Schema()
 export class Event extends Document {
@@ -25,8 +26,12 @@ export class Event extends Document {
 
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Payment' })
   payment: Payment;
+  @Prop({ type: [{ type: MongooseSchema.Types.ObjectId, ref: 'Contract' }] })
+  contracts: Contract[];
+
   @Prop({ required: true })
   location: string;
+
   @Prop({ required: true })
   startTime: string; // Example: '09:00'
 

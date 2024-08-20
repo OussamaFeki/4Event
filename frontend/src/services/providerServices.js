@@ -276,3 +276,19 @@ export const deleteAvailability = async (token, serviceId) => {
     throw error;
   }
 };
+export const getContractForMeAndEvent = async (token,eventId) => {
+  try {
+    const response = await axios.get(
+      `${API_BASE_URL}/contracts/${eventId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching contract:', error);
+    throw error;
+  }
+};

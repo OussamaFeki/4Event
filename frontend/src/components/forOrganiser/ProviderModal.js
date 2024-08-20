@@ -32,6 +32,17 @@ const ProviderModal = ({ show, handleClose, eventId, token }) => {
     setSelectedProviderId(providerId);
     setShowConfirmationModal(true);
   };
+  const handleDeleteProvider = (providerId) => {
+    setProviders((prevProviders) => {
+      // Find the provider with the given providerId
+      const providerToDelete = prevProviders.find((provider) => provider._id === providerId);
+  
+      if (!providerToDelete) {
+        return prevProviders;
+      }
+      return prevProviders.filter((provider) => provider._id !== providerId);
+    });
+  };
 
   const handleCloseConfirmationModal = () => {
     setShowConfirmationModal(false);
@@ -91,6 +102,7 @@ const ProviderModal = ({ show, handleClose, eventId, token }) => {
         token={token}
         eventId={eventId}
         providerId={selectedProviderId}
+        deleteProvider={handleDeleteProvider}
       />
     </>
   );

@@ -171,3 +171,51 @@ export const createContract = async (token, eventId, providerId, contractData) =
     throw error;
   }
 };
+export const getContractForProviderAndEvent = async (token, providerId, eventId) => {
+  try {
+    const response = await axios.get(
+      `${API_BASE_URL}/contracts/${providerId}/${eventId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching contract:', error);
+    throw error;
+  }
+};
+export const getNotApprovedContracts = async (token, eventId) => {
+  try {
+    const response = await axios.get(
+      `${API_BASE_URL}/contracts/not/approved/${eventId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching contracts:', error);
+    throw error;
+  }
+};
+export const updateContract=async(token,contractId,form)=>{
+  try{
+    const response=await axios.put(
+      `${API_BASE_URL}/contracts/${contractId}`,form,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  }catch(error){
+    console.error('Error updating contracts:', error);
+    throw error;
+  }
+}
