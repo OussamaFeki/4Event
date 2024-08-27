@@ -70,6 +70,7 @@ function Cards() {
   return (
     <Container fluid className="px-3 px-md-5 mt-3">
       {/* Search Bar and Filter */}
+      <h1>Organisers</h1>
       <Row className="justify-content-center mb-4">
         <Col md={6}>
           <InputGroup>

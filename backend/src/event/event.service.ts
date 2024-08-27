@@ -10,7 +10,7 @@ import { startOfWeek, endOfWeek,addMinutes, addDays, differenceInMinutes } from 
 import { Contract } from 'src/contract/contract.schema';
 @Injectable()
 export class EventService {
-  constructor(
+  constructor( 
     @InjectModel(Event.name) private eventModel: Model<Event>,
     @InjectModel(Provider.name) private providerModel: Model<Provider>,
     @InjectModel(User.name) private userModel: Model<User>,
@@ -205,6 +205,13 @@ export class EventService {
     }
   
     const { startTime, endTime } = createEventDto;
+    const currentDate = new Date();
+    currentDate.setHours(0, 0, 0, 0); // Set to start of the day
+  
+    if (new Date(startTime) < currentDate) {
+      throw new BadRequestException('Event date must be today or in the future');
+    }
+  
     if (startTime >= endTime) {
       throw new BadRequestException('Start time must be less than end time');
     }

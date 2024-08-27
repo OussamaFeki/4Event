@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Button, Card, Col, Row, Overlay, Tooltip } from 'react-bootstrap';
+import { Button, Card, Col, Row, Overlay, Tooltip, Form, InputGroup, DropdownButton, Dropdown } from 'react-bootstrap';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchAvailabilities } from '../../redux/actions/providerAction';
 import AvailabilityModal from '../../components/forProvider/AvailabilityModal';
@@ -13,6 +13,8 @@ const ManageAvailability = () => {
   const [selectedAvailability, setSelectedAvailability] = useState(null);
   const [deleteError, setDeleteError] = useState(null);
   const [showOverlay, setShowOverlay] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchBy, setSearchBy] = useState('dayOfWeek');
   const target = useRef(null);
   const availabilitiesPerPage = 3;
 
@@ -57,6 +59,16 @@ const ManageAvailability = () => {
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+    setCurrentPage(1); // Reset to the first page when the search term changes
+  };
+
+  const handleSearchByChange = (searchBy) => {
+    setSearchBy(searchBy);
+    setCurrentPage(1); // Reset to the first page when the search by changes
+  };
+
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -65,12 +77,39 @@ const ManageAvailability = () => {
     return <div>Error: {error.message}</div>;
   }
 
+  const filteredAvailabilities = availabilities.filter((availability) =>
+    availability[searchBy].toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   const indexOfLastAvailability = currentPage * availabilitiesPerPage;
   const indexOfFirstAvailability = indexOfLastAvailability - availabilitiesPerPage;
-  const currentAvailabilities = availabilities.slice(indexOfFirstAvailability, indexOfLastAvailability);
+  const currentAvailabilities = filteredAvailabilities.slice(indexOfFirstAvailability, indexOfLastAvailability);
+
+  const totalPages = Math.ceil(filteredAvailabilities.length / availabilitiesPerPage);
 
   return (
     <div>
+      <InputGroup className="mb-3">
+        <DropdownButton
+          as={InputGroup.Prepend}
+          variant="outline-secondary"
+          title={`Search by ${searchBy}`}
+          id="input-group-dropdown-1"
+          onSelect={handleSearchByChange}
+          style={{ width: '120px' }} // Adjust the width of the dropdown button
+        >
+          <Dropdown.Item eventKey="dayOfWeek">Day</Dropdown.Item>
+          <Dropdown.Item eventKey="startTime">Start</Dropdown.Item>
+          <Dropdown.Item eventKey="endTime">End</Dropdown.Item>
+        </DropdownButton>
+        <Form.Control
+          type="text"
+          placeholder={`Search by ${searchBy}`}
+          value={searchTerm}
+          onChange={handleSearchChange}
+          className="me-2"
+        />
+      </InputGroup>
       <Row>
         {currentAvailabilities.map((availability) => (
           <Col key={availability._id} xs={12} className="mb-3">
@@ -84,10 +123,10 @@ const ManageAvailability = () => {
                 <Button variant="primary" onClick={() => handleUpdate(availability)}>
                   Update
                 </Button>
-                <Button 
+                <Button
                   ref={target}
-                  variant="danger" 
-                  onClick={() => handleDelete(availability._id)} 
+                  variant="danger"
+                  onClick={() => handleDelete(availability._id)}
                   className="ml-2"
                 >
                   Delete
@@ -104,12 +143,20 @@ const ManageAvailability = () => {
           </Col>
         ))}
       </Row>
-      <Pagination
-        availabilitiesPerPage={availabilitiesPerPage}
-        totalAvailabilities={availabilities.length}
-        paginate={paginate}
-        currentPage={currentPage}
-      />
+      <nav>
+        <ul className="pagination">
+          {[...Array(totalPages).keys()].map((number) => (
+            <li
+              key={number + 1}
+              className={`page-item ${number + 1 === currentPage ? 'active' : ''}`}
+            >
+              <a onClick={() => paginate(number + 1)} href="#!" className="page-link">
+                {number + 1}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
       {selectedAvailability && (
         <AvailabilityModal
           show={showModal}
@@ -121,28 +168,6 @@ const ManageAvailability = () => {
         />
       )}
     </div>
-  );
-};
-
-const Pagination = ({ availabilitiesPerPage, totalAvailabilities, paginate, currentPage }) => {
-  const pageNumbers = [];
-
-  for (let i = 1; i <= Math.ceil(totalAvailabilities / availabilitiesPerPage); i++) {
-    pageNumbers.push(i);
-  }
-
-  return (
-    <nav>
-      <ul className="pagination">
-        {pageNumbers.map((number) => (
-          <li key={number} className={`page-item ${number === currentPage ? 'active' : ''}`}>
-            <a onClick={() => paginate(number)} href="#!" className="page-link">
-              {number}
-            </a>
-          </li>
-        ))}
-      </ul>
-    </nav>
   );
 };
 

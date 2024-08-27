@@ -17,7 +17,7 @@ const EventInfo = ({ show, onHide, event }) => {
   const [selectedProviderId, setSelectedProviderId] = useState(null);
   const [selectedContract, setSelectedContract] = useState(null);
   const [notApprovedContracts, setNotApprovedContracts] = useState([]);
-
+  console.log(event);
   const handleShowContractModalCallback = handleShowContractModal(
     setSelectedProviderId,
     setShowContractModal

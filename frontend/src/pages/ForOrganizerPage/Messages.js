@@ -37,7 +37,11 @@ const Messages = () => {
 
   const totalPages = Math.ceil(filteredMessages.length / messagesPerPage);
 
-  const handleSearch = (e) => setSearchTerm(e.target.value);
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
+    setCurrentPage(1); // Reset to the first page when the search term changes
+  };
+
   const handlePageChange = (pageNumber) => setCurrentPage(pageNumber);
 
   const handleOpenSendModal = (userId, email) => {
@@ -62,6 +66,11 @@ const Messages = () => {
     window.location.href = `sms:${phoneNumber}`;
   };
 
+  const handleSearchByChange = (searchBy) => {
+    setSearchBy(searchBy);
+    setCurrentPage(1); // Reset to the first page when the search by changes
+  };
+
   return (
     <Container>
       <InputGroup className="mb-3">
@@ -70,9 +79,10 @@ const Messages = () => {
           variant="outline-secondary"
           title={`Search by ${searchBy}`}
           id="input-group-dropdown-1"
+          onSelect={handleSearchByChange}
         >
-          <Dropdown.Item onClick={() => setSearchBy('name')}>Name</Dropdown.Item>
-          <Dropdown.Item onClick={() => setSearchBy('email')}>Email</Dropdown.Item>
+          <Dropdown.Item eventKey="name">Name</Dropdown.Item>
+          <Dropdown.Item eventKey="email">Email</Dropdown.Item>
         </DropdownButton>
         <Form.Control
           placeholder={`Search by ${searchBy}`}

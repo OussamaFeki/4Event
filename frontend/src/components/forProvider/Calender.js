@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
@@ -6,42 +6,75 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import momentTimezonePlugin from '@fullcalendar/moment-timezone';
 import './Calendar.css';
+import EventInfo from './EventInfo';
 
 const Calendar = ({ events, availability, requests, userId }) => {
+  const [showEventInfo, setShowEventInfo] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+
+  const handleEventClick = (clickInfo) => {
+    const clickedEvent = events.find(
+      event => event.name === clickInfo.event.title && event.date === clickInfo.event.startStr.split('T')[0]
+    );
+    if (clickedEvent && clickedEvent.name && clickedEvent.startTime && clickedEvent.endTime) {
+      setSelectedEvent(clickedEvent);
+      setShowEventInfo(true);
+    }
+  };
+
+  const handleCloseEventInfo = () => {
+    setShowEventInfo(false);
+    setSelectedEvent(null);
+  };
+
   const invalidTimeSlots = generateInvalidTimeSlots(availability);
 
   const formattedEvents = events.map(event => ({
     title: event.name,
     start: `${event.date.split('T')[0]}T${event.startTime}`,
-    end: `${event.date.split('T')[0]}T${event.endTime}`
+    end: `${event.date.split('T')[0]}T${event.endTime}`,
+    extendedProps: {
+      location: event.location
+    }
   }));
 
   return (
-    <div style={{ height: '600px', width: '100%' }}>
-      <FullCalendar
-        plugins={[dayGridPlugin, timeGridPlugin, momentTimezonePlugin, interactionPlugin]}
-        initialView="timeGridWeek"
-        timeZone="local"
-        events={[...formattedEvents, ...invalidTimeSlots]}
-        headerToolbar={{
-          left: 'prev,next today',
-          center: 'title',
-          right: ''
-        }}
-        slotMinTime="00:00:00"
-        slotMaxTime="24:00:00"
-        businessHours={availability.map(slot => ({
-          daysOfWeek: [dayOfWeekEnumToNumber(slot.dayOfWeek)],
-          startTime: slot.startTime,
-          endTime: slot.endTime
-        }))}
-        selectMirror={true}
-        selectable={false}  // Disable selectable to prevent selecting slots
-        nowIndicator={true}
-        eventContent={eventInfo => renderEventContent(eventInfo)}
-        allDaySlot={false}
-      />
-    </div>
+    <>
+      <div style={{ height: '600px', width: '100%' }}>
+        <FullCalendar
+          plugins={[dayGridPlugin, timeGridPlugin, momentTimezonePlugin, interactionPlugin]}
+          initialView="timeGridWeek"
+          timeZone="local"
+          events={[...formattedEvents, ...invalidTimeSlots]}
+          headerToolbar={{
+            left: 'prev,next today',
+            center: 'title',
+            right: ''
+          }}
+          slotMinTime="00:00:00"
+          slotMaxTime="24:00:00"
+          businessHours={availability.map(slot => ({
+            daysOfWeek: [dayOfWeekEnumToNumber(slot.dayOfWeek)],
+            startTime: slot.startTime,
+            endTime: slot.endTime
+          }))}
+          selectMirror={true}
+          selectable={false}
+          nowIndicator={true}
+          eventContent={eventInfo => renderEventContent(eventInfo)}
+          allDaySlot={false}
+          eventClick={handleEventClick} // Handle event click
+        />
+      </div>
+
+      {selectedEvent && (
+        <EventInfo
+          show={showEventInfo}
+          onHide={handleCloseEventInfo}
+          event={selectedEvent}
+        />
+      )}
+    </>
   );
 };
 
@@ -122,12 +155,18 @@ const generateInvalidTimeSlots = (availability) => {
 
 function renderEventContent(eventInfo) {
   const isInvalid = eventInfo.event.title === 'Invalid';
-
+  const location = eventInfo.event.extendedProps.location;
   return (
     <>
       <i style={{ color: isInvalid ? 'black' : 'inherit' }}>{eventInfo.event.title}</i>
       <br />
       <b>{eventInfo.timeText}</b>
+      {location && (
+        <>
+          
+          <span>📍 {location}</span>
+        </>
+      )}
     </>
   );
 }
