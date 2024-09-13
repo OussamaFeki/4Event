@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import Accordion from 'react-bootstrap/Accordion';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { getProfile, updateProfile, updateAvatar } from '../../services/auth';
-
+import { getProfile, updateProfile } from '../../services/auth';
+import { updateUserAvatar } from '../../redux/actions/userAction'; 
 const Setting = () => {
   const [userPassword, setUserPassword] = useState('');
   const [oldPassword, setOldPassword] = useState('');
@@ -13,6 +14,11 @@ const Setting = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [bio, setBio] = useState('');
   const [activeKey, setActiveKey] = useState('0');
+
+  const dispatch = useDispatch();
+  
+  // Accessing the user state from Redux to reflect any updates
+  const { user } = useSelector((state) => state.user);
 
   useEffect(() => {
     const fetchProfileData = async () => {
@@ -51,15 +57,12 @@ const Setting = () => {
 
   const handleChangeAvatar = async (e) => {
     e.preventDefault();
-    try {
-      if (avatar) {
-        await updateAvatar(avatar);
-        console.log('Avatar Changed', avatar);
-      } else {
-        console.log('No avatar selected');
-      }
-    } catch (error) {
-      console.error('Change avatar failed:', error.message);
+    if (avatar) {
+      // Dispatch the updateUserAvatar action
+      dispatch(updateUserAvatar(avatar));
+      console.log('Avatar changed via Redux', avatar);
+    } else {
+      console.log('No avatar selected');
     }
   };
 
